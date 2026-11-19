@@ -9,9 +9,18 @@
   };
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
-  /* ── simulasi hit-or-miss di hero ── */
+  /* ── simulasi hit-or-miss di hero ──
+     Di ponsel figur disembunyikan lewat CSS (.hero-figur di situs.css), dan
+     kanvas yang display:none berukuran 0x0. Jadi simulasi baru dipasang saat
+     layarnya cukup lebar. Titik henti ini harus sama dengan media query di
+     situs.css. */
   const kanvas = document.getElementById('sim-pi');
-  if (kanvas && window.Kit) {
+  const sempit = matchMedia('(max-width: 640px)');
+  let simSiap = false;
+
+  const pasangSim = () => {
+    if (simSiap || !kanvas || !window.Kit || sempit.matches) return;
+    simSiap = true;
     const elJumlah = document.getElementById('sim-n');
     const elNilai = document.getElementById('sim-pi-nilai');
     const PI = Math.PI;
@@ -118,7 +127,11 @@
     } else {
       mulai();
     }
-  }
+  };
+
+  pasangSim();
+  // dari sempit ke lebar: pasang saat figurnya tampil lagi (mis. ponsel diputar)
+  sempit.addEventListener?.('change', () => { if (!sempit.matches) requestAnimationFrame(pasangSim); });
 
   /* ── kartu materi ── */
   const wadah = document.getElementById('daftar-materi');

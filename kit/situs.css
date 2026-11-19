@@ -133,6 +133,10 @@ body.profil .kaki{margin-top:auto;border-top:1px solid var(--garis)}
   .hero-b,.profil-hero{padding-top:48px}
   .arsip{padding-top:64px}
   .hero-b h1{max-width:14ch}
+  /* figur simulasi disembunyikan di ponsel; pembungkusnya ikut disembunyikan
+     agar grid tidak menyisakan celah. Titik henti ini harus sama dengan
+     `sempit` di beranda.js */
+  .hero-figur{display:none}
   .kartu-meta{flex-wrap:wrap}
   .fakta>div{grid-template-columns:minmax(0,1fr);gap:6px}
   .kaki-isi{padding:24px 16px 40px}
