@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="id" data-tema="terang">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulasi Monte Carlo · Bagian 1 · Metode Simulasi Statistika</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231A5276'/><path d='M4 25c3.6 0 5-1.2 6.1-6.7C11 13 12.8 8.5 15.9 8.5s4.9 4.5 5.8 9.8C22.8 23.8 24.2 25 27.8 25' fill='none' stroke='%23F9F8F5' stroke-width='2.4' stroke-linecap='round'/></svg>">
+<script>
+  try {
+    var t = localStorage.getItem('tema');
+    if (t ? t === 'gelap' : matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.dataset.tema = 'gelap';
+    }
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="../../../kit/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../../../kit/kit.css">
+<link rel="stylesheet" href="../../../kit/situs.css">
+</head>
+<body class="materi" data-mk="simulasi">
+<a class="lewati" href="#utama">Lewati ke konten</a>
+<div id="progres"></div>
+
+<header class="situs">
+  <div class="situs-isi">
+    <a class="merek" href="../../../index.html" aria-label="Bagus's Lab, beranda">
+      <span class="merek-tanda" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 26c4 0 5.6-1.3 6.8-7.4C11 13.2 12.9 8 16 8s5 5.2 6.2 10.6C23.4 24.7 25 26 29 26"/></svg>
+      </span>
+      <span class="merek-teks">Bagus's Lab</span>
+    </a>
+    <nav class="situs-nav" aria-label="Navigasi utama">
+      <a href="../../../index.html#arsip" aria-current="true">Lab</a>
+      <a href="../../../profil.html">Profile</a>
+    </nav>
+    <button id="tema" aria-label="Aktifkan tema gelap" title="Ganti tema">
+      <svg class="ikon-matahari" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
+      <svg class="ikon-bulan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.6 8.6 0 0 1 9.8 3.5a8.6 8.6 0 1 0 10.7 10.7z"/></svg>
+    </button>
+  </div>
+</header>
+
+<header class="hero">
+  <div class="label-bagian">Metode Simulasi Statistika</div>
+  <h1>Simulasi<br>Monte Carlo</h1>
+  <p class="sub">Bagian 1 · Pengantar <i>Hit or Miss</i> Monte Carlo</p>
+  <p class="identitas">Bagus Arya Dwipangga · Statistika · UNJ</p>
+</header>
+
+<main class="artikel" id="utama">
+
+<section class="muncul">
+  <div class="label-bagian">01 · Definisi</div>
+  <h2>Simulasi yang berjalan dengan randomness</h2>
+  <p>Simulasi Monte Carlo adalah metode simulasi dengan konsep yang sangat sederhana, tetapi mampu memecahkan masalah yang sangat kompleks.</p>
+  <p>Namanya diambil dari sebuah kota di Monako yang terkenal dengan kasino dan perjudian. Dalam simulasi, “Monte Carlo” menjadi sinonim dari <strong>randomness</strong>, seperti unsur ketidakpastian dalam permainan judi.</p>
+  <p>Simulasi Monte Carlo adalah metode komputasi atau pemodelan matematis yang menggunakan pengambilan sampel acak berulang (repeated random sampling) untuk mengestimasi hasil numerik dari suatu masalah atau sistem yang kompleks dan memiliki banyak kemungkinan.</p>
+  <div class="temuan">Sederhananya, Monte Carlo dilakukan dengan cara menjalankan suatu proses berulang kali menggunakan nilai input yang dihasilkan secara acak, kemudian menganalisis distribusi hasilnya.</div>
+  <p>Ini terdengar berlawanan dengan intuisi: bagaimana mungkin hasil yang akurat dan berguna muncul dari proses yang acak? Jawabannya ada pada contoh pertama, yaitu menemukan π dengan menjatuhkan titik-titik secara random.</p>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">02 · Eksperimen</div>
+  <h2>Menemukan π tanpa rumus lingkaran</h2>
+  <p>Bayangkan sebuah persegi dengan panjang sisi 1. Di dalamnya terdapat seperempat lingkaran dengan jari-jari 1 yang berpusat di titik asal \((0,0)\). Simulasi menghasilkan titik-titik secara acak di seluruh area persegi. Setiap titik kemudian diperiksa apakah berada di dalam atau di luar seperempat lingkaran.</p>
+  <p>Titik yang berada di dalam seperempat lingkaran dikategorikan sebagai hit, sedangkan titik yang berada di luar seperempat lingkaran tetapi masih di dalam persegi dikategorikan sebagai miss.</p>
+  <p>Setelah simulasi dilakukan berulang kali hingga menghasilkan ribuan titik, nilai π dapat diestimasi dengan menghitung proporsi <em>hit</em> terhadap seluruh titik kemudian dikalikan 4. Coba simulasi di bawah ini.</p>
+  <div class="fig" id="fig-pi">
+    <h3 class="fig-judul">Titik acak di dalam persegi</h3>
+    <p class="fig-ket" style="margin:0 0 12px">Titik-titik dihasilkan secara acak di dalam persegi yang memuat seperempat lingkaran.</p>
+    <canvas id="cv-pi" style="aspect-ratio:1/1;max-width:460px;margin:0 auto" role="img" aria-label="Titik acak di dalam persegi sisi 1 yang memuat seperempat lingkaran; titik hit berwarna merah dan titik miss berwarna biru"></canvas>
+    <div class="grid"><span>jumlah titik<b id="p-n">0</b></span><span>hit<b id="p-h">0</b></span><span>miss<b id="p-m">0</b></span><span>estimasi π<b id="p-e">-</b></span><span>π sebenarnya<b>3,1416</b></span></div>
+    <div class="ctl"><button class="btn p" id="p-play">Putar</button><button class="btn" id="p-1">+1 titik</button><button class="btn" id="p-100">+100 titik</button><button class="btn" id="p-reset">Ulang</button><button class="btn" id="p-seed">Seed baru</button></div>
+    <p class="fig-ket">Merah: titik hit (di dalam seperempat lingkaran). Biru: titik miss (di luar seperempat lingkaran). Lingkaran kuning menandai titik terbaru.</p>
+  </div>
+  <p>Perhatikan bahwa kita tidak perlu menghitung luas lingkaran secara langsung. Cukup dengan menghitung proporsi titik yang berada di dalam seperempat lingkaran, kita dapat memperkirakan nilai π. Inilah salah satu penerapan metode Hit-or-Miss Monte Carlo.</p>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">03 · Penjelasan</div>
+  <h2>Mengapa hasilnya mendekati π?</h2>
+  <p>Jika titik dihasilkan secara <em>uniformly random</em> di dalam persegi, peluang sebuah titik berada di dalam seperempat lingkaran sebanding dengan perbandingan luas seperempat lingkaran terhadap luas persegi.</p>
+  <div class="math">$$P(\text{hit}) = \frac{\text{Luas seperempat lingkaran}}{\text{Luas persegi}}$$</div>
+  <p>Karena jari-jari seperempat lingkaran dan panjang sisi persegi sama-sama bernilai 1, luas kedua area adalah:</p>
+  <div class="math">$$L_{\text{seperempat lingkaran}} = \frac{1}{4}\pi(1)^2 = \frac{\pi}{4}$$</div>
+  <div class="math">$$L_{\text{persegi}} = 1^2 = 1$$</div>
+  <p>Dengan demikian, perbandingan luas seperempat lingkaran terhadap persegi adalah:</p>
+  <div class="math">$$\frac{L_{\text{seperempat lingkaran}}}{L_{\text{persegi}}} = \frac{\pi/4}{1} = \frac{\pi}{4}$$</div>
+  <p>Dalam simulasi, perbandingan luas tersebut dapat didekati menggunakan proporsi jumlah titik hit terhadap seluruh titik yang dihasilkan:</p>
+  <div class="math">$$\frac{N_{\text{hit}}}{N_{\text{total}}} \approx \frac{\pi}{4}$$</div>
+  <p>Sehingga estimasi nilai π diperoleh dengan mengalikan proporsi tersebut dengan 4:</p>
+  <div class="math">$$\boxed{\hat{\pi} = 4 \times \frac{N_{\text{hit}}}{N_{\text{total}}}}$$</div>
+  <div class="temuan">Inti mekanismenya: simulasi Monte Carlo menggunakan sampel acak untuk memperkirakan suatu nilai melalui pendekatan numerik. Setiap titik menjadi sampel pengamatan yang menentukan apakah lokasinya termasuk hit atau miss. Semakin banyak titik yang dihasilkan, estimasi nilai π secara umum akan semakin mendekati nilai sebenarnya.</div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">04 · Algoritma</div>
+  <h2>Algoritma Hit or Miss Monte Carlo</h2>
+  <p>Estimasi π dengan metode Hit or Miss dapat dijalankan dalam tiga langkah:</p>
+  <ol>
+    <li><strong>Bangkitkan titik acak.</strong> Bangkitkan nilai \(x\) dan \(y\) secara acak dan merata (uniform) pada persegi dengan sisi 1, sehingga \(0 \le x \le 1\) dan \(0 \le y \le 1\).</li>
+    <li><strong>Evaluasi titik.</strong> Titik disebut hit jika \(x^2 + y^2 \le 1\), yaitu berada di dalam lingkaran berjari-jari 1. Jika tidak, titik disebut miss.</li>
+    <li><strong>Hitung estimasi.</strong> Bagi jumlah hit dengan jumlah seluruh titik, lalu kalikan 4: \(\hat{\pi} = 4 \times N_{\text{hit}} / N_{\text{total}}\).</li>
+  </ol>
+  <p>Ketiga langkah ini dapat ditulis dalam bahasa R sebagai berikut:</p>
+  <div class="fig" id="fig-alg">
+    <h3 class="fig-judul">Kode R dan titik yang dihasilkan</h3>
+    <div class="kode"><pre><span class="baris" data-b="1">n &lt;- 10000                        <span class="kom"># jumlah titik</span></span><span class="baris" data-b="2">x &lt;- runif(n, 0, 1)               <span class="kom"># x acak di dalam persegi</span></span><span class="baris" data-b="3">y &lt;- runif(n, 0, 1)               <span class="kom"># y acak di dalam persegi</span></span><span class="baris" data-b="4">hit &lt;- x^2 + y^2 &lt;= 1             <span class="kom"># cek berada di dalam lingkaran</span></span><span class="baris" data-b="5">pi_hat &lt;- 4 * sum(hit) / n       <span class="kom"># estimasi π</span></span></pre></div>
+    <canvas id="cv-alg" style="aspect-ratio:1/1;max-width:360px;margin:12px auto 0" role="img" aria-label="Titik acak di dalam persegi sisi 1 yang dihasilkan satu per satu oleh kode; titik hit berwarna merah dan miss berwarna biru"></canvas>
+    <div class="grid"><span>titik ke<b id="a-n">0</b></span><span>hit<b id="a-h">0</b></span><span>estimasi π<b id="a-e">-</b></span></div>
+    <div class="ctl"><button class="btn p" id="a-play">Putar</button><button class="btn" id="a-1">+1 titik</button><button class="btn" id="a-reset">Ulang</button></div>
+    <p class="fig-ket">Baris kode yang disorot adalah bagian yang sedang dijalankan. Gambar ini menjalankan logika yang sama dengan kode di atas, tetapi satu titik per langkah agar setiap proses terlihat.</p>
+  </div>
+  <p>Baris 2 dan 3 membangkitkan titik, baris 4 mengevaluasi apakah titik berada di dalam lingkaran, dan baris 5 menghitung estimasi π. Dalam kode, <code>runif(n, 0, 1)</code> menghasilkan <code>n</code> bilangan acak merata pada rentang 0 sampai 1.</p>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">05 · Teori</div>
+  <h2>Law of Large Numbers</h2>
+  <p>Prinsip di balik semua ini dalam teori probabilitas adalah <strong>Law of Large Numbers</strong>: rata-rata sampel cenderung semakin mendekati <em>expected value</em> yang sebenarnya seiring bertambahnya jumlah sampel.</p>
+  <div class="math">$$\bar{X}_n = \frac{1}{n}\sum_{i=1}^{n} X_i \;\longrightarrow\; \mathbb{E}[X] \qquad \text{saat } n \to \infty$$</div>
+  <p>Pada kasus π, misalkan \(I_i = 1\) jika titik ke-\(i\) berstatus hit dan \(I_i = 0\) jika miss. Karena \(P(\text{hit}) = \pi/4\), maka \(\mathbb{E}[I_i] = \pi/4\), dan proporsi hit tidak lain adalah rata-rata sampel dari \(I_i\). Akibatnya, estimasi π mendekati nilai sebenarnya:</p>
+  <div class="math">$$\hat{\pi}_n = 4 \times \frac{N_{\text{hit}}}{n} = 4\,\bar{I}_n \;\longrightarrow\; 4\,\mathbb{E}[I] = 4 \times \frac{\pi}{4} = \pi \qquad \text{saat } n \to \infty$$</div>
+  <p>Secara teori, kita harus menguji setiap titik di dalam persegi yang jumlahnya tak terhingga. Sebagai gantinya, kita cukup mengambil sampel titik acak yang tersebar merata di dalam persegi.</p>
+  <div class="fig" id="fig-konv">
+    <h3 class="fig-judul">Estimasi π seiring bertambahnya titik</h3>
+    <canvas id="cv-k" style="aspect-ratio:2.2/1" role="img" aria-label="Tiga jalur estimasi pi yang semakin mendekati nilai pi sebenarnya"></canvas>
+    <div class="ctl"><button class="btn p" id="k-go">Jalankan lagi dengan seed baru</button></div>
+    <p class="fig-ket">Tiga simulasi dengan seed berbeda, sumbu horizontal logaritmik. Garis hijau putus-putus adalah π.</p>
+  </div>
+  <p>Pada tahap awal, estimasi berfluktuasi liar karena sampelnya masih sedikit. Seiring bertambahnya titik, fluktuasi mengecil dan garis mengerucut ke nilai π.</p>
+  <details class="temuan"><summary>Tebak dulu: jika hanya ada 20 titik, apakah estimasinya pasti dekat π?</summary>
+    <p>Belum tentu. Dengan 20 titik, jumlah hit hanya berupa bilangan bulat, sehingga estimasi \(4 \times N_{\text{hit}}/20\) hanya bisa melompat dalam kelipatan 0,2, dan galat tipikalnya masih sekitar 0,4. Itulah sebabnya jalur di bagian awal grafik tampak liar.</p></details>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">06 · Ringkasan</div>
+  <h2>Inti materi</h2>
+  <ul>
+    <li>Simulasi Monte Carlo adalah simulasi yang berjalan dengan randomness. Setiap titik acak adalah satu sampel pengamatan.</li>
+    <li>Pada metode Hit-or-Miss, peluang sebuah titik menjadi hit adalah \(\pi/4\), sehingga estimasi π diperoleh dari \(4 \times N_{\text{hit}}/N_{\text{total}}\).</li>
+    <li>Semakin banyak titik yang dihasilkan, estimasi semakin mendekati π, sesuai Law of Large Numbers.</li>
+  </ul>
+</section>
+
+<nav class="nav-bawah" aria-label="Navigasi materi">
+  <span></span>
+  <a class="kartu-nav kanan" href="../membangkitkan-data-berdistribusi/index.html">
+    <span>Bagian berikutnya</span>
+    <b>Bagian 2 · Membangkitkan Data Berdistribusi</b>
+  </a>
+</nav>
+
+</main>
+<script src="../../../kit/vendor/katex/katex.min.js"></script>
+<script src="../../../kit/vendor/katex/auto-render.min.js"></script>
+<script src="../../../kit/kit.js"></script>
+<script src="widgets/sim.js"></script>
+</body>
+</html>

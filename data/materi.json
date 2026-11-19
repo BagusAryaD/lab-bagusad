@@ -1,0 +1,57 @@
+{
+  "versi": 1,
+  "topik": [
+    {
+      "slug": "metode-simulasi-statistika",
+      "nama": "Metode Simulasi Statistika",
+      "ringkas": "Metode simulasi untuk pengembangan intuisi statistika."
+    }
+  ],
+  "materi": [
+    {
+      "slug": "pengantar-simulasi-monte-carlo",
+      "topik": "metode-simulasi-statistika",
+      "judul": "Simulasi Monte Carlo",
+      "bagian": 1,
+      "subjudul": "Pengantar Hit or Miss",
+      "ringkas": "Cara mengukur sesuatu dengan bilangan acak.",
+      "berkas": "materi/metode-simulasi-statistika/pengantar-simulasi-monte-carlo/index.html",
+      "sampul": "aset/sampul-monte-carlo-1.jpg",
+      "sampul_gelap": "aset/sampul-monte-carlo-1-gelap.jpg",
+      "sampul_alt": "Simulasi hit or miss: titik acak di dalam persegi dengan seperempat lingkaran, sebagian besar titik berwarna merah di dalam lingkaran",
+      "tujuan": [
+        "Menjelaskan apa itu simulasi Monte Carlo dan peran randomness di dalamnya",
+        "Menjelaskan mengapa proporsi titik hit dikalikan 4 mengestimasi π",
+        "Menjelaskan Law of Large Numbers dan konvergensi estimasi"
+      ],
+      "sumber": [
+        "Video “Monte Carlo Simulation”, MarbleScience, menit 00:00 sampai 06:00 (youtube.com/watch?v=7ESK5SaP-bc)"
+      ],
+      "kit": "0.4",
+      "status": "selesai",
+      "tanggal": "2026-11-19"
+    },
+    {
+      "slug": "membangkitkan-data-berdistribusi",
+      "topik": "metode-simulasi-statistika",
+      "judul": "Simulasi Monte Carlo",
+      "bagian": 2,
+      "subjudul": "Hit or Miss untuk Membangkitkan Data Berdistribusi Tertentu",
+      "ringkas": "Hit or miss sebagai acceptance-rejection untuk membangkitkan data dari densitas target.",
+      "berkas": "materi/metode-simulasi-statistika/membangkitkan-data-berdistribusi/index.html",
+      "sampul": "aset/sampul-monte-carlo-2.jpg",
+      "sampul_gelap": "aset/sampul-monte-carlo-2-gelap.jpg",
+      "sampul_alt": "Figur acceptance-rejection: kurva densitas target f, proposal g, batas atas c g, dan satu kandidat dengan batang uji",
+      "tujuan": [
+        "Menjelaskan gagasan acceptance-rejection dan kaitannya dengan hit or miss Monte Carlo",
+        "Memeriksa compatible support dan menentukan konstanta c terkecil",
+        "Menerapkan algoritma pada distribusi Beta(2,4) dan normal melalui setengah-normal",
+        "Menghitung peluang penerimaan dan memilih proposal density yang efisien"
+      ],
+      "sumber": ["Pertemuan 10, slide 3 sampai 13"],
+      "kit": "0.4",
+      "status": "selesai",
+      "tanggal": "2026-11-19"
+    }
+  ]
+}

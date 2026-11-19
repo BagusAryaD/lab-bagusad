@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="id" data-tema="terang">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulasi Monte Carlo · Bagian 2 · Metode Simulasi Statistika</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231A5276'/><path d='M4 25c3.6 0 5-1.2 6.1-6.7C11 13 12.8 8.5 15.9 8.5s4.9 4.5 5.8 9.8C22.8 23.8 24.2 25 27.8 25' fill='none' stroke='%23F9F8F5' stroke-width='2.4' stroke-linecap='round'/></svg>">
+<script>
+  try {
+    var t = localStorage.getItem('tema');
+    if (t ? t === 'gelap' : matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.dataset.tema = 'gelap';
+    }
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="../../../kit/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../../../kit/kit.css">
+<link rel="stylesheet" href="../../../kit/situs.css">
+<style>
+table.banding{width:100%;border-collapse:collapse;font:.85rem/1.55 var(--sans);margin:1.4em 0;color:var(--tinta-2)}
+table.banding th,table.banding td{padding:9px 10px;border-bottom:1px solid var(--garis);text-align:left;vertical-align:middle}
+table.banding th{font-weight:600;color:var(--tinta-redup);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase}
+table.banding td:first-child{color:var(--tinta)}
+table.banding td.n{font-family:var(--mono);font-size:.82rem;white-space:nowrap;color:var(--tinta)}
+table.banding tr.buruk td,table.banding tr.buruk td.n{color:var(--aksen-2)}
+.kisi2{display:grid;grid-template-columns:1fr 1fr;gap:18px 18px;margin-bottom:4px}
+.kisi2 .panel{min-width:0}
+.kisi2 canvas{display:block;width:100%;border-radius:var(--radius)}
+.panel-kepala{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font:600 .7rem var(--sans);color:var(--tinta-redup);margin-bottom:7px}
+.tag{padding:2px 7px;border-radius:999px;font:700 .6rem var(--sans);letter-spacing:.07em;text-transform:uppercase}
+.tag.ok{background:color-mix(in srgb,var(--hijau) 15%,transparent);color:var(--hijau)}
+.tag.no{background:color-mix(in srgb,var(--aksen-2) 15%,transparent);color:var(--aksen-2)}
+.panel-ket{font:.78rem/1.55 var(--sans);color:var(--tinta-2);margin:7px 0 0}
+.hero .sub{max-width:44ch}
+@media(max-width:700px){
+  .kisi2{grid-template-columns:1fr}
+  #cv-terima{aspect-ratio:1.05/1!important}
+  #cv-jejak{aspect-ratio:2.1/1!important}
+  #cv-beta,#cv-normal{aspect-ratio:1.55/1!important}
+  #cv-efisien{aspect-ratio:1.05/1!important}
+  table.banding{font-size:.76rem;display:block;overflow-x:auto}
+  table.banding th,table.banding td{padding:7px 6px}
+  table.banding td.n{white-space:normal}
+  table.banding th:nth-child(2),table.banding td:nth-child(2){width:22%}
+}
+</style>
+</head>
+<body class="materi" data-mk="simulasi">
+<a class="lewati" href="#utama">Lewati ke konten</a>
+<div id="progres"></div>
+
+<header class="situs">
+  <div class="situs-isi">
+    <a class="merek" href="../../../index.html" aria-label="Bagus's Lab, beranda">
+      <span class="merek-tanda" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 26c4 0 5.6-1.3 6.8-7.4C11 13.2 12.9 8 16 8s5 5.2 6.2 10.6C23.4 24.7 25 26 29 26"/></svg>
+      </span>
+      <span class="merek-teks">Bagus's Lab</span>
+    </a>
+    <nav class="situs-nav" aria-label="Navigasi utama">
+      <a href="../../../index.html#arsip" aria-current="true">Lab</a>
+      <a href="../../../profil.html">Profile</a>
+    </nav>
+    <button id="tema" aria-label="Aktifkan tema gelap" title="Ganti tema">
+      <svg class="ikon-matahari" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
+      <svg class="ikon-bulan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.6 8.6 0 0 1 9.8 3.5a8.6 8.6 0 1 0 10.7 10.7z"/></svg>
+    </button>
+  </div>
+</header>
+
+<header class="hero">
+  <div class="label-bagian">Metode Simulasi Statistika</div>
+  <h1>Simulasi<br>Monte Carlo</h1>
+  <p class="sub">Bagian 2 · Membangkitkan data berdistribusi tertentu dengan <i>Hit or Miss</i> Monte Carlo</p>
+  <p class="identitas">Bagus Arya Dwipangga · Statistika · UNJ</p>
+</header>
+
+<main class="artikel" id="utama">
+
+<section class="muncul">
+  <div class="label-bagian">01 · Motivasi</div>
+  <h2>Dari bilangan uniform ke distribusi apa&nbsp;pun</h2>
+  <p>Setiap perangkat lunak statistika menyediakan pembangkit bilangan acak yang keluarannya berdistribusi uniform pada selang \((0,1)\). Di R, perintah <code>runif(1)</code> mengembalikan satu nilai \(U \sim \text{Uniform}(0,1)\). Seluruh distribusi lain, termasuk normal, beta, dan chi-square, pada akhirnya dibangun dari deretan bilangan uniform semacam ini.</p>
+  <p>Persoalannya: bagaimana caranya? Untuk sebagian distribusi, hubungan dengan uniform dapat ditulis secara eksplisit. Jika \(F\) adalah fungsi distribusi kumulatif yang kontinu dan naik tegas, maka \(X = F^{-1}(U)\) berdistribusi \(F\). Prosedur ini dikenal sebagai <i>inverse transform</i>. Namun \(F^{-1}\) tidak selalu tersedia dalam bentuk tertutup, dan pada distribusi normal invers tersebut memang tidak punya bentuk elementer.</p>
+  <p>Pada bagian pertama, metode <i>hit or miss</i> dipakai untuk mengestimasi \(\pi\): sampel acak digunakan untuk mengukur luas daerah di bawah kurva. Gagasan yang sama dapat dibalik. Alih-alih memakai sampel untuk mengukur daerah di bawah kurva, sampel disaring sedemikian rupa sehingga yang tersisa justru menyebar mengikuti kurva itu. Penyaringan inilah inti metode <i>acceptance–rejection</i>.</p>
+  <div class="temuan">Metode <i>acceptance–rejection</i> membangkitkan nilai dari distribusi lain yang mudah disimulasikan, lalu menolak sebagian nilai tersebut. Nilai yang lolos penyaringan berdistribusi tepat mengikuti densitas target, bukan sekadar mendekatinya.</div>
+  <p>Satu sifat praktis membuat metode ini luas dipakai: yang perlu dievaluasi hanyalah \(f(x)\) pada titik tertentu, bukan fungsi distribusi kumulatifnya. Bahkan jika \(f\) hanya diketahui sampai suatu konstanta pengali, algoritma tetap berjalan karena konstanta tersebut terserap ke dalam \(c\).</p>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">02 · Prinsip</div>
+  <h2>Menyaring kandidat dengan densitas pembanding</h2>
+  <p>Misalkan \(f(x)\) adalah densitas target yang ingin dibangkitkan dan \(g(x)\) adalah densitas lain yang sudah tersedia pembangkitnya, misalnya uniform atau eksponensial. Dalam literatur, \(g\) disebut <i>proposal density</i>. Syarat pertama menyangkut wilayah tempat kedua densitas bernilai positif: \(g(x) > 0\) di setiap titik tempat \(f(x) > 0\). Tanpa syarat ini, ada nilai yang mungkin muncul pada target tetapi tidak pernah diusulkan, sehingga hasilnya pasti menyimpang. Pasangan \(f\) dan \(g\) yang memenuhinya dikatakan memiliki <i>compatible support</i>.</p>
+  <p>Syarat kedua: terdapat konstanta \(c\) sehingga</p>
+  <div class="math">$$c\,g(x) \ge f(x) \qquad \text{untuk semua } x$$</div>
+  <p>Secara geometris, kurva \(c\,g(x)\) menjadi batas atas bagi \(f(x)\): seluruh daerah di bawah \(f\) termuat di dalam daerah di bawah \(c\,g\).</p>
+  <p>Kedua syarat itu lebih mudah dipahami secara visual: syarat pertama menyangkut wilayah, syarat kedua menyangkut tinggi. Empat kemungkinan yang muncul dirangkum pada gambar berikut.</p>
+  <div class="fig" id="fig-syarat">
+    <h3 class="fig-judul">Ilustrasi syarat</h3>
+    <div class="kisi2">
+      <div class="panel">
+        <div class="panel-kepala"><span class="tag ok">Memenuhi</span>Syarat 1 · <i>compatible support</i></div>
+        <canvas id="cv-s1a" style="aspect-ratio:1.7/1" role="img" aria-label="Densitas target f dan proposal uniform g, keduanya positif pada seluruh selang nol sampai satu"></canvas>
+        <p class="panel-ket">\(g\) positif di setiap titik tempat \(f\) positif. Tidak ada nilai target yang terlewat.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-kepala"><span class="tag no">Tidak</span>Syarat 1 · <i>compatible support</i></div>
+        <canvas id="cv-s1b" style="aspect-ratio:1.7/1" role="img" aria-label="Proposal g bernilai nol pada selang nol sampai nol koma empat, sedangkan target f tetap positif di sana sehingga sebagian nilai tidak pernah diusulkan"></canvas>
+        <p class="panel-ket">\(g\) nol pada \((0;\,0{,}4)\), padahal \(f\) positif di sana. Nilai di daerah itu tidak akan pernah diusulkan.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-kepala"><span class="tag ok">Memenuhi</span>Syarat 2 · batas atas</div>
+        <canvas id="cv-s2a" style="aspect-ratio:1.7/1" role="img" aria-label="Kurva c g menyinggung puncak densitas target f di x sama dengan seperempat, sehingga seluruh f tercakup"></canvas>
+        <p class="panel-ket">\(c\,g\) menyinggung puncak \(f\) di \(x = 1/4\). Seluruh \(f\) tercakup.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-kepala"><span class="tag no">Tidak</span>Syarat 2 · batas atas</div>
+        <canvas id="cv-s2b" style="aspect-ratio:1.7/1" role="img" aria-label="Konstanta c terlalu kecil sehingga kurva c g memotong densitas target f; daerah di sekitar puncak berada di atas batas atas"></canvas>
+        <p class="panel-ket">\(c\) terlalu kecil, sehingga \(c\,g\) memotong \(f\). Nilai di sekitar puncak tidak pernah diterima.</p>
+      </div>
+    </div>
+    <p class="fig-ket">Keempat panel memakai target yang sama, \(f(x) = 20x(1-x)^3\), agar perbedaan yang terlihat benar-benar berasal dari syaratnya. Daerah yang diarsir adalah bagian yang dilanggar.</p>
+  </div>
+  <p>Algoritma bekerja dengan dua bilangan acak pada setiap percobaan. Kandidat \(Y\) dibangkitkan dari \(g\), lalu bilangan penguji \(U\) dibangkitkan dari \(\text{Uniform}(0,1)\). Pasangan \((Y, U)\) menentukan sebuah titik pada bidang: posisi mendatarnya adalah \(Y\), sedangkan posisi tegaknya adalah \(U\,c\,g(Y)\). Dengan dua undian itu, titik tersebar uniform di seluruh daerah di bawah \(c\,g(x)\). Kandidat diterima jika titik tersebut jatuh di bawah kurva \(f\), yaitu ketika</p>
+  <div class="math">$$U \le \frac{f(Y)}{c\,g(Y)}$$</div>
+  <p>Jika titik jatuh di antara \(f\) dan \(c\,g\), kandidat ditolak dan dibuang. Peluang penerimaan sama dengan perbandingan luas kedua daerah. Karena \(f\) dan \(g\) keduanya densitas ternormalisasi, luas di bawah \(f\) bernilai 1 dan luas di bawah \(c\,g\) bernilai \(c\), sehingga peluang penerimaan adalah \(1/c\).</p>
+  <div class="fig" id="fig-terima">
+    <h3 class="fig-judul">Pengujian kandidat terhadap densitas target</h3>
+    <p class="fig-ket" style="margin:0 0 12px">Kandidat \(Y\) menentukan posisi mendatar titik. Bilangan penguji \(U\) menentukan posisi tegaknya, yaitu \(U\,c\,g(Y)\). Batang di \(x = Y\) memisahkan bagian yang diterima, di bawah \(f(Y)\), dari bagian yang ditolak.</p>
+    <canvas id="cv-terima" style="aspect-ratio:1.75/1" role="img" aria-label="Kurva densitas target f, proposal g, dan batas atas c g; satu kandidat turun dari garis c g pada posisi Y, dengan batang uji yang memisahkan daerah terima di bawah f dari daerah tolak di atasnya; keterangan Y, U, tinggi, ambang, dan status ditampilkan di atas plot"></canvas>
+    <div class="grid"><span>kandidat<b id="t-n">0</b></span><span>diterima<b id="t-a">0</b></span><span>ditolak<b id="t-r">0</b></span><span>tingkat penerimaan<b id="t-p">-</b></span><span>1/c<b id="t-pc">47,4%</b></span></div>
+    <div class="ctl"><button class="btn p" id="t-play">Putar</button><button class="btn" id="t-1">+1 kandidat</button><button class="btn" id="t-reset">Ulang</button><button class="btn" id="t-seed">Seed baru</button></div>
+    <p class="fig-ket">Kuning: kandidat yang sedang diuji. Hijau: diterima. Merah: ditolak. Bagian hijau batang uji adalah daerah penerimaan, bagian merah adalah daerah penolakan. Posisi tegak hanya alat penguji dan tidak disimpan; yang dicatat adalah posisi mendatarnya.</p>
+  </div>
+  <p>Pada gambar di atas, kurva merah adalah densitas target \(f\), garis biru adalah <i>proposal</i> \(g\), dan garis putus-putus emas adalah batas atas \(c\,g\). Setiap kandidat memunculkan batang uji di posisi \(x = Y\): bagian hijau di bawah \(f(Y)\) adalah daerah penerimaan, bagian merah di atasnya adalah daerah penolakan. Titik turun dari garis \(c\,g(Y)\) dan berhenti pada ketinggian \(U\,c\,g(Y)\); berhentinya di bagian hijau berarti diterima, di bagian merah berarti ditolak. Angka ambang pada keterangan atas adalah \(f(Y)/(c\,g(Y))\), yaitu nilai \(U\) terbesar yang masih diterima. Posisi mendatarnya, bukan ketinggiannya, yang disimpan sebagai nilai hasil pembangkitan.</p>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">03 · Pembenaran</div>
+  <h2>Mengapa nilai yang diterima berdistribusi \(f\)</h2>
+  <p>Konstanta \(c\) terkecil yang sah adalah</p>
+  <div class="math">$$c = \sup_x \frac{f(x)}{g(x)}$$</div>
+  <p>Jika dipilih \(c\) yang lebih kecil, ada titik dengan \(c\,g(x) < f(x)\). Nilai di sekitar titik itu tidak akan pernah diterima, sehingga distribusi hasilnya menyimpang dari \(f\). Sebaliknya, \(c\) yang lebih besar tetap sah, hanya kurang efisien. Karena \(f\) dan \(g\) keduanya densitas dengan integral 1, berlaku \(\sup_x f(x)/g(x) \ge 1\), sehingga \(c \ge 1\) dan peluang penerimaan tidak pernah melampaui 1. Kesamaan tercapai hanya jika \(f = g\).</p>
+  <p>Pembenaran algoritma cukup singkat. Peluang penerimaan bersyarat pada kandidat \(Y = y\) adalah</p>
+  <div class="math">$$P(\text{diterima} \mid Y = y) = P\left(U \le \frac{f(y)}{c\,g(y)}\right) = \frac{f(y)}{c\,g(y)}$$</div>
+  <p>sehingga peluang penerimaan menyeluruh adalah</p>
+  <div class="math">$$P(\text{diterima}) = \int g(y)\,\frac{f(y)}{c\,g(y)}\,dy = \frac{1}{c}\int f(y)\,dy = \frac{1}{c}$$</div>
+  <p>Dengan aturan Bayes, densitas kandidat yang diterima adalah</p>
+  <div class="math">$$f_X(x) = \frac{g(x)\,P(\text{diterima}\mid Y = x)}{P(\text{diterima})} = \frac{g(x)\cdot \dfrac{f(x)}{c\,g(x)}}{1/c} = f(x)$$</div>
+  <p>Jadi penyaringan tidak mengubah bentuk distribusi selain memotongnya tepat pada kurva \(f\).</p>
+  <p>Biaya komputasi ditentukan sepenuhnya oleh \(1/c\). Jumlah percobaan sampai satu nilai diterima berdistribusi geometrik dengan rataan \(c\), sehingga untuk memperoleh \(n\) nilai dibutuhkan sekitar \(cn\) kandidat. Menaikkan efisiensi berarti memilih \(g\) yang sedekat mungkin dengan \(f\).</p>
+  <div class="temuan">Semakin rapat batas atas \(c\,g(x)\) terhadap \(f(x)\), semakin kecil \(c\), dan semakin sedikit kandidat yang terbuang. Efisiensi metode ini bukan soal implementasi, melainkan soal seberapa baik \(g\) menyerupai \(f\).</div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">04 · Contoh pertama</div>
+  <h2>Distribusi Beta(2,4) dengan <i>proposal</i> uniform</h2>
+  <p>Distribusi Beta dengan parameter \(\alpha > 0\) dan \(\beta > 0\) memiliki densitas</p>
+  <div class="math">$$f(x) = \frac{1}{B(\alpha,\beta)}\,x^{\alpha-1}(1-x)^{\beta-1}, \qquad 0 \le x \le 1$$</div>
+  <p>dengan \(B(\alpha,\beta) = \Gamma(\alpha)\Gamma(\beta)/\Gamma(\alpha+\beta)\). Untuk \(\alpha = 2\) dan \(\beta = 4\), diperoleh \(B(2,4) = \Gamma(2)\Gamma(4)/\Gamma(6) = (1\cdot 6)/120 = 1/20\), sehingga</p>
+  <div class="math">$$f(x) = 20x(1-x)^3$$</div>
+  <p>Karena \(f(x)\) hanya positif pada selang \((0,1)\), pilihan paling sederhana untuk \(g\) adalah uniform pada selang yang sama, yaitu \(g \sim \text{Uniform}(0,1)\) dengan \(g(x) = 1\). <i>Compatible support</i> otomatis terpenuhi. Rasio kedua densitas adalah \(r(x) = f(x)/g(x) = 20x(1-x)^3\), dan \(c\) adalah nilai maksimum rasio tersebut. Turunannya</p>
+  <div class="math">$$r'(x) = 20(1-x)^3 - 60x(1-x)^2 = 20(1-x)^2(1-4x)$$</div>
+  <p>bernilai nol di \(x = 1/4\); titik \(x = 1\) juga membuat turunan nol, tetapi di situ \(r(1) = 0\) sehingga merupakan minimum. Karena \(r\) naik pada \((0, 1/4)\) dan turun sesudahnya, \(x = 1/4\) adalah titik maksimum:</p>
+  <div class="math">$$c = r\left(\tfrac{1}{4}\right) = 20\cdot\tfrac{1}{4}\cdot\left(\tfrac{3}{4}\right)^{3} = \frac{135}{64} \approx 2{,}109$$</div>
+  <p>Kriteria penerimaan menjadi</p>
+  <div class="math">$$U \le \frac{f(Y)}{c\,g(Y)} = \frac{20Y(1-Y)^3}{135/64} = \frac{256}{27}\,Y(1-Y)^3$$</div>
+  <p>dan peluang penerimaan adalah \(1/c = 64/135 \approx 47{,}4\%\). Artinya, dari setiap 100 kandidat uniform, sekitar 47 diterima dan 53 dibuang.</p>
+  <div class="fig" id="fig-beta">
+    <h3 class="fig-judul">Distribusi hasil pembangkitan Beta(2,4)</h3>
+    <canvas id="cv-beta" style="aspect-ratio:2.4/1" role="img" aria-label="Histogram nilai yang dibangkitkan dengan metode terima-tolak dibandingkan dengan kurva densitas Beta(2,4)"></canvas>
+    <div class="grid"><span>n<b id="b-n">0</b></span><span>rata-rata empiris<b id="b-m">-</b></span><span>rata-rata teori<b>0,3333</b></span><span>simpangan baku empiris<b id="b-s">-</b></span><span>simpangan baku teori<b>0,1782</b></span></div>
+    <div class="ctl"><button class="btn p" id="b-play">Putar</button><button class="btn" id="b-100">+100 nilai</button><button class="btn" id="b-1000">+1.000 nilai</button><button class="btn" id="b-reset">Ulang</button><button class="btn" id="b-seed">Seed baru</button></div>
+    <p class="fig-ket">Batang hijau adalah histogram nilai yang diterima, garis merah adalah densitas \(f\) yang sebenarnya. Perhatikan bahwa histogram mengikuti kurva tanpa perlu ditala secara manual.</p>
+  </div>
+  <p>Rata-rata teoretis distribusi ini adalah \(\alpha/(\alpha+\beta) = 1/3\), sedangkan ragamnya \(\alpha\beta/[(\alpha+\beta)^2(\alpha+\beta+1)] = 8/252 \approx 0{,}0317\), atau simpangan baku sekitar \(0{,}1782\). Kedua besaran itu dapat dibandingkan dengan nilai empiris pada gambar di atas untuk memeriksa apakah hasil pembangkitan sudah sesuai.</p>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">05 · Algoritma</div>
+  <h2>Penerapan di R</h2>
+  <p>Kriteria penerimaan yang baru diturunkan, \(U \le \tfrac{256}{27}Y(1-Y)^3\), dapat langsung dipakai. Prosedur berikut menerapkannya dalam empat langkah.</p>
+  <ol>
+    <li>Bangkitkan \(Y \sim g\).</li>
+    <li>Bangkitkan \(U \sim \text{Uniform}(0,1)\) secara bebas terhadap \(Y\).</li>
+    <li>Hitung \(f(Y)/(c\,g(Y))\). Jika \(U\) tidak melebihi nilai tersebut, terima \(X = Y\).</li>
+    <li>Jika ditolak, buang \(Y\) beserta \(U\), lalu kembali ke langkah pertama.</li>
+  </ol>
+  <p>Langkah keempat penting secara konsep: kandidat yang ditolak tidak diperbaiki dan tidak disimpan, melainkan dibuang seluruhnya. Prosedur berhenti ketika jumlah nilai yang diterima mencapai \(n\).</p>
+  <div class="fig" id="fig-jejak">
+    <h3 class="fig-judul">Ilustrasi algoritma</h3>
+    <div class="kode"><pre><span class="baris" data-b="1">bangkit_beta &lt;- function(n) {</span><span class="baris" data-b="2">  x &lt;- numeric(n); i &lt;- 1</span><span class="baris" data-b="3">  while (i &lt;= n) {</span><span class="baris" data-b="4">    y &lt;- runif(1)                      <span class="kom"># kandidat dari g = Uniform(0,1)</span></span><span class="baris" data-b="5">    u &lt;- runif(1)                      <span class="kom"># bilangan penguji</span></span><span class="baris" data-b="6">    if (u &lt;= 256/27 * y * (1 - y)^3) { <span class="kom"># uji terima-tolak</span></span><span class="baris" data-b="7">      x[i] &lt;- y                        <span class="kom"># diterima</span></span><span class="baris" data-b="8">      i &lt;- i + 1                       <span class="kom"># lanjut ke nilai berikutnya</span></span><span class="baris" data-b="9">    }</span><span class="baris" data-b="10">  }</span><span class="baris" data-b="11">  x</span><span class="baris" data-b="12">}</span></pre></div>
+    <canvas id="cv-jejak" style="aspect-ratio:4.2/1;max-width:660px;margin:14px auto 0" role="img" aria-label="Bilangan penguji U dibandingkan dengan ambang f dari Y dibagi c g dari Y; U di kiri ambang berarti kandidat diterima"></canvas>
+    <div class="grid"><span>Y<b id="j-y">-</b></span><span>U<b id="j-u">-</b></span><span>ambang f(Y)/c g(Y)<b id="j-a">-</b></span><span>status<b id="j-s">-</b></span></div>
+    <div class="ctl"><button class="btn p" id="j-play">Putar</button><button class="btn" id="j-1">+1 iterasi</button><button class="btn" id="j-reset">Ulang</button></div>
+    <p class="fig-ket">Baris kode yang menyala adalah baris yang sedang dijalankan. Satu iterasi terdiri atas tiga tahap: membangkitkan kandidat, menguji, lalu memutuskan.</p>
+  </div>
+  <p>Baris 4 dan 5 menghasilkan kandidat beserta bilangan pengujinya, baris 6 melakukan uji terima–tolak, dan baris 7 hanya dijalankan ketika kandidat diterima. Perhatikan bahwa perulangan memakai <code>while</code>, bukan <code>for</code>: jumlah iterasi tidak dapat ditentukan di muka karena bergantung pada berapa banyak kandidat yang ditolak.</p>
+  <p>Fungsi itu dapat langsung dipakai. Pemeriksaan hasilnya cukup dengan histogram dan kurva densitas teoretis:</p>
+  <div class="kode"><pre>set.seed(10)
+x &lt;- bangkit_beta(1000)
+
+hist(x, freq = FALSE, main = "Beta(2,4)", xlab = "x")
+curve(dbeta(x, 2, 4), col = "red", lwd = 2, add = TRUE)</pre></div>
+  <p>Dengan <code>freq = FALSE</code>, sumbu tegak histogram menyatakan densitas, bukan frekuensi, sehingga skalanya sebanding dengan kurva. Argumen <code>add = TRUE</code> menumpuk kurva di atas histogram yang sudah ada.</p>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">06 · Contoh kedua</div>
+  <h2>Distribusi normal melalui setengah-normal</h2>
+  <p>Densitas normal standar \(\phi(x) = \frac{1}{\sqrt{2\pi}}e^{-x^2/2}\) mendefinisikan distribusi pada seluruh garis bilangan, sedangkan <i>proposal</i> yang mudah dibangkitkan umumnya hanya terdefinisi pada separuh garis. Karena \(\phi\) simetris terhadap nol, persoalan dapat dipecah: bangkitkan dulu nilai pada \(x \ge 0\), lalu tentukan tandanya secara acak.</p>
+  <p>Densitas setengah-normal adalah dua kali lipat densitas normal pada separuh garis,</p>
+  <div class="math">$$f(x) = \frac{2}{\sqrt{2\pi}}\,e^{-x^2/2} = \sqrt{\frac{2}{\pi}}\,e^{-x^2/2}, \qquad x \ge 0$$</div>
+  <p>Sebagai <i>proposal</i>, pilih distribusi eksponensial dengan rataan 1, yaitu \(g(x) = e^{-x}\) pada \(x \ge 0\). <i>Support</i> kedua densitas sama, sehingga syarat pertama terpenuhi. Rasio keduanya</p>
+  <div class="math">$$r(x) = \frac{f(x)}{g(x)} = \sqrt{\frac{2}{\pi}}\,\exp\left(-\frac{x^2}{2} + x\right)$$</div>
+  <p>Maksimum rasio dicari dari turunan eksponennya, \(\frac{d}{dx}\left(-\frac{x^2}{2}+x\right) = 1-x\), yang bernilai nol di \(x=1\) dan berubah tanda dari positif ke negatif. Jadi \(x=1\) adalah titik maksimum, dan</p>
+  <div class="math">$$c = \sqrt{\frac{2}{\pi}}\,e^{1/2} = \sqrt{\frac{2e}{\pi}} \approx 1{,}315$$</div>
+  <p>Kriteria penerimaan dapat disederhanakan menjadi</p>
+  <div class="math">$$\frac{f(Y)}{c\,g(Y)} = \exp\left(-\frac{(Y-1)^2}{2}\right)$$</div>
+  <p>Peluang penerimaan \(1/c = \sqrt{\pi/(2e)} \approx 76{,}0\%\), jauh lebih tinggi daripada contoh Beta karena \(g\) sudah cukup mirip dengan \(f\). Untuk memperoleh normal penuh, setiap nilai yang diterima dikalikan dengan tanda acak, \(X = S\cdot Y\) dengan \(P(S=1) = P(S=-1) = 1/2\).</p>
+  <p>Fungsi pembangkitnya mengikuti pola yang sama dengan contoh Beta: kandidat diusulkan dari \(g\), diuji dengan satu bilangan acak, lalu diterima atau dibuang. Yang berbeda hanya kriteria penerimaannya.</p>
+  <div class="kode"><pre>bangkit_setengah_normal &lt;- function(n) {
+  x &lt;- numeric(n); i &lt;- 1
+  while (i &lt;= n) {
+    y &lt;- rexp(1, rate = 1)             # kandidat dari g = eksponensial(1)
+    u &lt;- runif(1)                      # bilangan penguji
+    if (u &lt;= exp(-(y - 1)^2 / 2)) {    # uji terima-tolak
+      x[i] &lt;- y                        # diterima
+      i &lt;- i + 1                       # lanjut ke nilai berikutnya
+    }
+  }
+  x
+}</pre></div>
+  <p>Pemakaian dan pemeriksaannya sama seperti sebelumnya, hanya <i>proposal</i> yang berbeda:</p>
+  <div class="kode"><pre>set.seed(10)
+x &lt;- bangkit_setengah_normal(1000)
+
+hist(x, freq = FALSE, main = "Setengah-normal", xlab = "x")
+curve(2 / sqrt(2 * pi) * exp(-x^2 / 2), col = "red", lwd = 2, add = TRUE)
+
+# normal penuh: kalikan dengan tanda acak
+z &lt;- x * sample(c(-1, 1), length(x), replace = TRUE)</pre></div>
+  <div class="fig" id="fig-normal">
+    <h3 class="fig-judul">Setengah-normal dan normal penuh dengan tanda acak</h3>
+    <canvas id="cv-normal" style="aspect-ratio:2.4/1" role="img" aria-label="Histogram setengah-normal hasil terima-tolak, dan versi yang dicerminkan ke sisi negatif setelah tanda acak ditambahkan"></canvas>
+    <div class="grid"><span>n<b id="n-n">0</b></span><span>rata-rata empiris<b id="n-m">-</b></span><span>simpangan baku empiris<b id="n-s">-</b></span></div>
+    <div class="ctl"><button class="btn p" id="n-play">Putar</button><button class="btn" id="n-100">+100 nilai</button><button class="btn" id="n-1000">+1.000 nilai</button><button class="btn" id="n-sign">Tambah tanda ±</button><button class="btn" id="n-reset">Ulang</button></div>
+    <p class="fig-ket">Tanpa tanda, seluruh nilai berada di sisi positif dan histogram mengikuti densitas setengah-normal. Dengan tanda, separuh nilai dicerminkan ke kiri sehingga histogram menjadi normal penuh. Sampel yang dipakai sama pada kedua tampilan.</p>
+  </div>
+  <p>Karena \(\phi\) simetris, pembagian menjadi setengah-normal dan tanda acak bersifat eksak, bukan pendekatan. Cara ini juga menjelaskan mengapa distribusi normal mudah dibangkitkan dari distribusi yang hanya terdefinisi di separuh garis, seperti eksponensial.</p>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">07 · Pemilihan proposal</div>
+  <h2>Semakin rapat batas atas, semakin murah</h2>
+  <p>Efisiensi metode <i>acceptance–rejection</i> sepenuhnya ditentukan oleh \(c\). Setiap kenaikan \(c\) menambah jumlah kandidat yang harus dibuang untuk memperoleh satu nilai. Karena itu pemilihan \(g\) bukan soal selera, melainkan soal bentuk: \(g\) harus menyerupai \(f\) dan memiliki ekor yang tidak lebih ringan.</p>
+  <p>Untuk target setengah-normal, empat pilihan <i>proposal</i> memberikan hasil yang sangat berbeda:</p>
+  <table class="banding">
+    <thead><tr><th>Proposal \(g(x)\)</th><th>\(c\)</th><th>Peluang penerimaan \(1/c\)</th></tr></thead>
+    <tbody>
+      <tr><td>\(e^{-x}\) (eksponensial, \(\lambda = 1\))</td><td class="n">1,315</td><td class="n">76,0%</td></tr>
+      <tr><td>\(\text{Uniform}(0,4)\)</td><td class="n">3,19</td><td class="n">31,3%</td></tr>
+      <tr><td>\(\text{Uniform}(0,8)\)</td><td class="n">6,38</td><td class="n">15,7%</td></tr>
+      <tr class="buruk"><td>Cauchy</td><td class="n">∞</td><td class="n">0</td></tr>
+    </tbody>
+  </table>
+  <p>Baris terakhir menunjukkan kegagalan yang khas. Densitas Cauchy memiliki ekor jauh lebih berat daripada normal, sehingga rasio \(f(x)/g(x)\) tumbuh tanpa batas ketika \(|x|\) membesar dan tidak ada \(c\) berhingga yang dapat menutupi \(f\); karena itu \(c\) ditulis sebagai tak berhingga. Batas atas hanya mungkin bila ekor \(g\) paling tidak seberat ekor \(f\).</p>
+  <p>Untuk <i>proposal</i> eksponensial dengan parameter \(\lambda\), yaitu \(g(x) = \lambda e^{-\lambda x}\), rasio \(f(x)/g(x)\) mencapai maksimum di \(x = \lambda\), sehingga konstanta yang diperlukan adalah</p>
+  <div class="math">$$c(\lambda) = \frac{1}{\lambda}\sqrt{\frac{2}{\pi}}\;e^{\lambda^2/2}$$</div>
+  <p>Jika \(\lambda\) kecil, \(g\) terlalu landai dan rapatnya rendah di seluruh wilayah, sehingga batas atas harus dinaikkan. Jika \(\lambda\) besar, \(g\) menurun terlalu cepat dan ekornya tidak lagi menutupi \(f\). Keseimbangan tercapai pada \(\lambda = 1\), tempat \(c\) minimum.</p>
+  <div class="fig" id="fig-efisien">
+    <h3 class="fig-judul">Pengaruh λ terhadap c</h3>
+    <canvas id="cv-efisien" style="aspect-ratio:2.4/1" role="img" aria-label="Kurva target setengah-normal, proposal eksponensial, dan batas atasnya; di sampingnya grafik c sebagai fungsi lambda yang minimum di lambda sama dengan satu"></canvas>
+    <div class="ctl"><label class="lbl" for="e-lam">λ</label><input type="range" id="e-lam" min="0.4" max="2" step="0.05" value="1" style="flex:1;min-width:150px;accent-color:var(--aksen-1)"></div>
+    <div class="grid"><span>c<b id="e-c">1,315</b></span><span>peluang penerimaan 1/c<b id="e-p">76,0%</b></span><span>c minimum<b>1,315 pada λ = 1</b></span></div>
+    <p class="fig-ket">Panel kiri: target \(f\), proposal \(g\), dan batas atas \(c\,g\) pada skala yang menyesuaikan. Panel kanan: nilai \(c\) sebagai fungsi \(\lambda\) beserta penanda posisi \(\lambda\) saat ini.</p>
+  </div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">08 · Latihan dan ringkasan</div>
+  <h2>Latihan: chi-square dan F</h2>
+  <p>Pertanyaan penutup pada kuliah: bagaimana memperoleh distribusi chi-square dengan derajat bebas 1, dan distribusi \(F\) dengan derajat bebas \((1,1)\)?</p>
+  <p>Untuk chi-square, gunakan definisinya. Jika \(Z \sim N(0,1)\), maka \(Z^2 \sim \chi^2_{(1)}\). Jadi cukup bangkitkan satu nilai normal, lalu kuadratkan. Tidak diperlukan prosedur <i>acceptance–rejection</i> baru; contoh kedua sudah memberi normal, dan transformasi kuadrat menyelesaikan sisanya.</p>
+  <p>Untuk \(F_{(1,1)}\), gunakan definisi sebagai rasio dua chi-square yang masing-masing dibagi derajat bebasnya:</p>
+  <div class="math">$$F = \frac{\chi^2_{(1)}/1}{\chi^2_{(1)}/1} = \left(\frac{Z_1}{Z_2}\right)^{2}$$</div>
+  <p>dengan \(Z_1\) dan \(Z_2\) saling bebas dan keduanya normal standar. Kedua kasus ini menunjukkan pola yang berulang: banyak distribusi tidak perlu dibangkitkan secara langsung, melainkan disusun dari distribusi yang lebih sederhana melalui transformasi.</p>
+  <p>Dalam praktik di R, seluruh distribusi tersebut sudah tersedia melalui <code>rbeta</code>, <code>rnorm</code>, <code>rchisq</code>, dan <code>rf</code>. Metode <i>acceptance–rejection</i> dipakai ketika densitas target tidak punya bentuk tertutup yang mudah diinversi, atau ketika peneliti perlu membangkitkan distribusi yang tidak tersedia di pustaka. Prinsipnya tetap sama: pilih pembanding yang rapat, saring kandidatnya, lalu periksa apakah hasilnya sesuai.</p>
+
+  <h2>Inti materi</h2>
+  <ul>
+    <li>Metode <i>acceptance–rejection</i> membangkitkan kandidat dari <i>proposal density</i> \(g\), lalu menerimanya dengan peluang \(f(Y)/(c\,g(Y))\). Nilai yang diterima berdistribusi tepat mengikuti \(f\).</li>
+    <li>Syarat sahnya ada dua: <i>compatible support</i>, yaitu \(g(x) > 0\) di setiap titik dengan \(f(x) > 0\), dan adanya konstanta \(c\) dengan \(c\,g(x) \ge f(x)\). Konstanta terkecil adalah \(\sup_x f(x)/g(x)\).</li>
+    <li>Peluang penerimaan adalah \(1/c\), sehingga satu nilai diterima memerlukan sekitar \(c\) kandidat. Memilih \(g\) yang menyerupai \(f\) adalah satu-satunya cara menekan biaya.</li>
+    <li>Pada Beta(2,4), \(c = 135/64\) dan sekitar 47% kandidat diterima; pada setengah-normal dengan <i>proposal</i> eksponensial, \(c = \sqrt{2e/\pi}\) dan sekitar 76% kandidat diterima.</li>
+  </ul>
+</section>
+
+<nav class="nav-bawah" aria-label="Navigasi materi">
+  <a class="kartu-nav" href="../pengantar-simulasi-monte-carlo/index.html">
+    <span>Bagian sebelumnya</span>
+    <b>Bagian 1 · Pengantar Hit or Miss</b>
+  </a>
+  <span></span>
+</nav>
+
+</main>
+<script src="../../../kit/vendor/katex/katex.min.js"></script>
+<script src="../../../kit/vendor/katex/auto-render.min.js"></script>
+<script src="../../../kit/kit.js"></script>
+<script src="widgets/bangkit.js"></script>
+</body>
+</html>
