@@ -106,6 +106,18 @@ body.profil .kaki{margin-top:auto;border-top:1px solid var(--garis)}
 .fakta dd b{display:block;margin-bottom:4px;font:600 1.02rem/1.4 var(--sans);color:var(--judul)}
 .fakta dd span{display:block}
 
+/* ── tampilan padat untuk layar laptop ──
+   Setara menekan Ctrl+- sekali di Chrome, supaya hero, figur, dan kartu tidak
+   terpotong di layar pendek. transform:scale sengaja tidak dipakai: header
+   sticky dan #progres yang fixed akan ikut tergeser. Media query tetap dihitung
+   dari lebar jendela asli, jadi titik henti di bawah tidak terpengaruh. */
+@media(min-width:900px) and (max-height:1080px) and (pointer:fine){
+  html{zoom:.8}
+  /* 100vh tidak ikut diskalakan zoom, jadi tinggi minimum halaman profil
+     perlu dinaikkan 1/.8 agar kaki tetap menempel di bawah layar */
+  body.profil{min-height:125vh}
+}
+
 /* ── responsif ── */
 @media(max-width:900px){
   .hero-b,.profil-hero{grid-template-columns:minmax(0,1fr);gap:40px}

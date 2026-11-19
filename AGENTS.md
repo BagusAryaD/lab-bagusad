@@ -38,6 +38,17 @@ layar dari `alat/pratinjau.mjs`.
 - Tema dipilih lewat CSS, bukan JS: dua `<img>` (`.sampul-terang` /
   `.sampul-gelap`) dan `[data-tema="gelap"]` yang menyembunyikan salah satunya.
   Jangan pindahkan logika ini ke JavaScript.
+- **Tampilan padat memakai `zoom`, bukan `transform`.** `kit/situs.css` memasang
+  `html{zoom:.8}` untuk layar laptop (`min-width:900px`, `max-height:1080px`,
+  `pointer:fine`) supaya hero dan figur tidak terpotong di layar pendek.
+  `transform:scale()` sengaja dihindari karena merusak header `sticky` dan
+  `#progres` yang `fixed`. Dua hal yang mudah salah:
+  - `100vh` **tidak** ikut diskalakan `zoom`, jadi `body.profil` perlu
+    `min-height:125vh` agar kaki tetap menempel di bawah. Jangan kembalikan ke
+    `100vh`.
+  - Tangkapan layar QA di lebar 1280 kini menampilkan tata letak seperti 1600px,
+    dan `alat/tangkap.mjs` mengunci `zoom` ke `1` sendiri agar sampul tidak
+    digambar kecil lalu diperbesar.
 - Tidak ada templating. Favicon data-URI, script anti-flash tema di `<head>`, dan
   header/footer disalin manual di setiap halaman. Setiap halaman (termasuk
   materi) wajib menyalin script anti-flash itu; tanpa itu header akan berkedip

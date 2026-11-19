@@ -172,12 +172,17 @@ for (const t of sasaran) {
     await selesai;
     await jeda(400);
 
-    // pasang tema sebelum figur digambar, supaya warna kanvas langsung sesuai
+    // pasang tema sebelum figur digambar, supaya warna kanvas langsung sesuai.
+    // zoom dikunci ke 1 karena jendela 1280x900 termasuk "layar laptop" dan akan
+    // kena mode padat di situs.css; tanpa ini figur digambar lebih kecil lalu
+    // diperbesar lagi saat komposisi sehingga titiknya terlihat kasar.
     await kirim('Runtime.evaluate', {
       expression: `(() => {
         try { localStorage.setItem('tema', ${JSON.stringify(tema)}); } catch (e) {}
+        document.documentElement.style.zoom = '1';
         document.documentElement.dataset.tema = ${JSON.stringify(tema)};
         document.dispatchEvent(new CustomEvent('tema'));
+        window.dispatchEvent(new Event('resize'));
         const el = document.querySelector(${JSON.stringify(t.kanvas)});
         if (el) el.closest('.fig')?.scrollIntoView({ block: 'center', behavior: 'instant' });
         return !!el;

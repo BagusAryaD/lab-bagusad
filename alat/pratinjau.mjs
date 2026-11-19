@@ -93,16 +93,18 @@ await jeda(jedaMuat);
 const tinggi = await kirim('Runtime.evaluate', { expression: 'document.documentElement.scrollHeight', returnByValue: true });
 const H = Math.min(tinggi.result.value, 4200);
 
-// gulir pelan sampai bawah supaya animasi "muncul" sempat berjalan, lalu kembali ke atas
+// gulir pelan sampai bawah supaya animasi "muncul" sempat berjalan, lalu kembali ke atas.
+// behavior harus 'instant': kit.css memasang scroll-behavior:smooth, dan tanpa ini
+// setiap scrollTo hanya bergerak sedikit sehingga bagian bawah tetap opacity 0.
 if (process.env.LAB_GULIR !== '0') {
   await kirim('Runtime.evaluate', {
     expression: `(async () => {
       const jeda = (ms) => new Promise(r => setTimeout(r, ms));
       for (let y = 0; y < document.documentElement.scrollHeight; y += 500) {
-        window.scrollTo(0, y);
+        window.scrollTo({ top: y, behavior: 'instant' });
         await jeda(90);
       }
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'instant' });
       await jeda(200);
     })()`,
     awaitPromise: true,
