@@ -1,8 +1,9 @@
 # AGENTS.md
 
 Situs statis "Bagus's Lab": catatan kuliah statistika + figur interaktif.
-HTML/CSS/JS murni. Tidak ada build step, tidak ada `package.json`, tidak ada
-git. Satu-satunya dependensi: Node dan Chrome/Edge untuk alat bantu.
+HTML/CSS/JS murni. Tidak ada build step dan tidak ada `package.json`. Repo git
+dengan remote `origin` ke `github.com/BagusAryaD/lab-bagusad`. Satu-satunya
+dependensi: Node dan Chrome/Edge untuk alat bantu.
 
 Dokumentasi isi dan struktur ada di `README.md`. Berkas ini hanya memuat hal
 yang mudah salah kalau tidak tahu.
