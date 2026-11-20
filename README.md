@@ -1,6 +1,6 @@
 # Bagus's Lab
 
-Catatan kuliah statistika yang bisa diakses lewat https://lab.bagusad.web.id/. Ada simulasi interaktif dan contoh kode R. Dibikin iseng, awalnya buat bahan belajar mahasiswa Statistika di prodi saya, sekaligus arsip pribadi. Materi lain nyusul, baik untuk mata kuliah lain maupun materi statistika di luar kuliah.
+Catatan kuliah statistika yang bisa diakses lewat https://lab.bagusad.web.id/. Ada simulasi interaktif dan contoh kode R. Dibikin iseng, buat bahan belajar statistika, sekaligus arsip pribadi. Materi lain nyusul, baik untuk mata kuliah lain maupun materi statistika di luar kuliah.
 
 Kalau ada masukan atau saran materi, contact aja.
 
