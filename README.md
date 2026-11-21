@@ -9,7 +9,7 @@ Kalau ada masukan atau saran materi, contact aja.
 - **index.html** — Beranda. Ada simulasi estimasi pi dengan metode hit or miss di bagian hero, lalu daftar materi (arsip) yang bisa dicari dan disaring per topik.
 - **profil.html** — Profil singkat (pendidikan) dan tombol "Full profile" ke bagusad.web.id.
 - **data/materi.json** — Satu-satunya daftar materi. Setiap kartu di beranda diambil dari sini.
-- **kit/** — Kode desain dan utilitas yang dipakai semua halaman: kit.css (token warna, font, gaya artikel), situs.css (header, footer, tombol, tata letak), kit.js (tema, progres baca, animasi kode, KaTeX).
+- **kit/** — Kode desain dan utilitas yang dipakai semua halaman: kit.css (token warna, font, gaya artikel), situs.css (header, footer, tombol, tata letak), kit.js (tema, progres baca, animasi kode, KaTeX), dan daftar-isi.js (navigasi dalam halaman materi, dibangun dari `.label-bagian`).
 - **materi/<topik>/<slug>/** — Halaman materi masing-masing, boleh ada folder widgets/ untuk figur interaktif.
 - **alat/** — Script bantu: periksa.mjs (validasi data), tangkap.mjs (buat sampul kartu), pratinjau.mjs (tangkapan layar).
 - **aset/** — Sampul kartu materi, hasil generate dari alat/tangkap.mjs.

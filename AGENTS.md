@@ -68,6 +68,8 @@ layar dari `alat/pratinjau.mjs`.
   halaman materi. Dimuat **setelah** `kit.css` oleh semua halaman.
   Header situs ada di semua halaman; di materi, tab **Lab** ditandai
   `aria-current="true"`.
+- `kit/daftar-isi.js`: navigasi dalam halaman materi, dibangun otomatis dari
+  `.label-bagian` tiap section; materi baru otomatis mendapat daftar isi.
 - `kit/kit.js`: mengelola `data-tema` di `<html>` (localStorage key `tema`),
   progress bar, reveal `.muncul`, count-up `[data-target]`, tombol salin otomatis
   untuk `.kode`, dan KaTeX (`$$...$$` serta `\(...\)`). Mengekspos `window.Kit`:
