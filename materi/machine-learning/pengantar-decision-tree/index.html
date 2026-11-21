@@ -61,13 +61,15 @@
   .rincian b{color:var(--tinta)}
   .tip-pohon{font:.76rem/1.45 var(--sans);color:var(--tinta-redup);margin:9px 0 0;min-height:1.45em}
   .tip-pohon b{color:var(--tinta);font-family:var(--mono);font-weight:600}
+  .geser-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .geser-x canvas{display:block;width:100%;min-width:560px}
 
   @media(max-width:860px){
     .kisi-fig,.kisi-2,.kisi-2b,.kisi-3,.kisi-5{grid-template-columns:1fr}
     #cv-panggung{aspect-ratio:1.3/1!important}
     #cv-mini{aspect-ratio:1.6/1!important}
     #cv-impurity{aspect-ratio:1.1/1!important}
-    #cv-konstruksi{aspect-ratio:1.15/1!important}
+    #cv-konstruksi{aspect-ratio:760/460!important}
     #cv-kedalaman{aspect-ratio:1.25/1!important}
   }
   @media(max-width:532px){
@@ -379,11 +381,11 @@
         <div class="grid" style="flex-direction:column;gap:8px">
           <span>Jumlah leaf node<b id="kon-leaf">1</b></span>
           <span>Kedalaman saat ini<b id="kon-kedalaman">0</b></span>
-          <span>Galat latih<b id="kon-galat">0,4062</b></span>
+          <span>Galat latih<b id="kon-galat">0,4062</b> <small id="kon-galat-selisih" style="font-weight:400;color:var(--tinta-redup)"></small></span>
         </div>
       </div>
       <div class="panel">
-        <canvas id="cv-konstruksi" style="aspect-ratio:760/430" role="img" aria-label="Pohon keputusan yang tumbuh satu simpul setiap langkah; kartu simpul memuat pertanyaan, jumlah penumpang, dan batang komposisi kelas"></canvas>
+        <div class="geser-x"><canvas id="cv-konstruksi" style="aspect-ratio:760/460" role="img" aria-label="Pohon keputusan yang tumbuh satu simpul setiap langkah; kartu simpul memuat pertanyaan, jumlah penumpang, dan batang komposisi kelas"></canvas></div>
       </div>
     </div>
     <div class="ctl" role="group" aria-label="Kontrol konstruksi pohon">
@@ -594,5 +596,6 @@ plt.show()</pre></div>
 <script src="widgets/impurity.js"></script>
 <script src="widgets/kandidat.js"></script>
 <script src="widgets/kedalaman.js"></script>
+<script src="widgets/konstruksi.js"></script>
 </body>
 </html>
