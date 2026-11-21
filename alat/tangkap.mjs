@@ -1,8 +1,9 @@
 // alat/tangkap.mjs - membuat sampul kartu beranda dari figur interaktif materi.
 // Jalankan: node alat/tangkap.mjs
+// Filter opsional: node alat/tangkap.mjs struktur-data
 //
 // Cara kerja: buka halaman materi di Chrome headless, biarkan figur kanvas berjalan,
-// lalu komposisi ulang kanvas figur itu ke bingkai 1200×750 dengan warna kertas situs.
+// lalu komposisi ulang kanvas figur itu ke bingkai 1200×900 dengan warna kertas situs.
 // Hasilnya pratinjau bersih tanpa tombol dan teks kendali, seragam untuk semua kartu.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
@@ -13,6 +14,7 @@ import { tmpdir } from 'node:os';
 const akar = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const port = 9333;
 const profil = join(tmpdir(), 'lab-tangkap-' + Date.now());
+const saring = process.argv[2] ?? '';
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -41,7 +43,24 @@ const sasaran = [
     tunggu: 6500,
     keluar: 'aset/sampul-monte-carlo-2.jpg',
   },
+  {
+    halaman: 'materi/struktur-data/struktur-data-dimensi-waktu/index.html',
+    kanvas: '#cv-dimensi',
+    tunggu: 1700,
+    keluar: 'aset/sampul-struktur-data.jpg',
+    // sampul tidak memakai catatan mode di dalam kanvas
+    siap: 'window.__tanpaCatatan = true; window.dispatchEvent(new Event("resize"));',
+  },
 ];
+
+const pilih = saring
+  ? sasaran.filter(t => t.halaman.includes(saring) || t.keluar.includes(saring))
+  : sasaran;
+
+if (!pilih.length) {
+  console.error('✗ Tidak ada target yang cocok dengan filter: ' + saring);
+  process.exit(1);
+}
 
 const jeda = (ms) => new Promise(r => setTimeout(r, ms));
 
@@ -165,7 +184,7 @@ const komposisi = (sel, lebar, tinggi, tepi) => `(() => {
   return { data: out.toDataURL('image/jpeg', .9) };
 })()`;
 
-for (const t of sasaran) {
+for (const t of pilih) {
   for (const tema of ['terang', 'gelap']) {
     const selesai = tungguMuat();
     await kirim('Page.navigate', { url: pathToFileURL(join(akar, t.halaman)).href });
@@ -190,6 +209,11 @@ for (const t of sasaran) {
       returnByValue: true,
     });
     await jeda(t.tunggu ?? 2500);
+
+    if (t.siap) {
+      await kirim('Runtime.evaluate', { expression: t.siap, returnByValue: true });
+      await jeda(400);
+    }
 
     const hasil = await kirim('Runtime.evaluate', {
       expression: komposisi(t.kanvas, 1200, 900, 28),

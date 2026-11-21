@@ -31,8 +31,12 @@ layar dari `alat/pratinjau.mjs`.
   `http://127.0.0.1:8765/`), karena beranda mengambil `data/materi.json`.
   `tangkap.mjs` justru memakai `file://`, jadi tidak butuh server.
 - **Sampul kartu adalah hasil generate, jangan digambar tangan.** `tangkap.mjs`
-  bergantung pada kanvas `#cv-pi` dan `#cv-terima` serta widget yang menggambar
-  ulang saat menerima CustomEvent `tema`. Ubah figur, jalankan ulang alat itu.
+  bergantung pada kanvas `#cv-pi`, `#cv-terima`, dan `#cv-dimensi` serta widget
+  yang menggambar ulang saat menerima CustomEvent `tema`. Ubah figur, jalankan
+  ulang alat itu. Filter opsional: `node alat/tangkap.mjs struktur-data`.
+  Untuk kanvas yang punya catatan teks di dalam gambar, target bisa memakai
+  field `siap` (JS yang dijalankan sebelum tangkapan) supaya catatan itu
+  disembunyikan di sampul.
 - `periksa.mjs` gagal bila ada `materi/**/index.html` yang belum terdaftar di
   `data/materi.json`, atau masih ada `meta.json` lama. Daftarkan dulu, baru periksa.
 - Tema dipilih lewat CSS, bukan JS: dua `<img>` (`.sampul-terang` /
@@ -53,9 +57,9 @@ layar dari `alat/pratinjau.mjs`.
   header/footer disalin manual di setiap halaman. Setiap halaman (termasuk
   materi) wajib menyalin script anti-flash itu; tanpa itu header akan berkedip
   terang sebelum `kit.js` sempat membaca `localStorage`.
-- Teks di dalam kanvas memakai string font hardcoded `'11px Inter, sans-serif'`
-  di `widgets/*.js`, sisa dari font lama. Token CSS tidak berlaku di canvas;
-  situs sekarang memakai IBM Plex Sans/Mono.
+- Teks di dalam kanvas memakai string font hardcoded, misalnya
+  `10px "IBM Plex Sans", sans-serif`, di `widgets/*.js`. Token CSS tidak berlaku
+  di canvas; situs memakai IBM Plex Sans/Mono.
 
 ## Arsitektur
 

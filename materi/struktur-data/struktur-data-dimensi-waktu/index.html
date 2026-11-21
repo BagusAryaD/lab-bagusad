@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="id" data-tema="terang">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cross Section vs Time Series vs Longitudinal vs Panel · Struktur Data</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231A5276'/><path d='M4 25c3.6 0 5-1.2 6.1-6.7C11 13 12.8 8.5 15.9 8.5s4.9 4.5 5.8 9.8C22.8 23.8 24.2 25 27.8 25' fill='none' stroke='%23F9F8F5' stroke-width='2.4' stroke-linecap='round'/></svg>">
+<script>
+  try {
+    var t = localStorage.getItem('tema');
+    if (t ? t === 'gelap' : matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.dataset.tema = 'gelap';
+    }
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="../../../kit/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../../../kit/kit.css">
+<link rel="stylesheet" href="../../../kit/situs.css">
+<style>
+  .tabel-gulir{overflow-x:auto;margin:1.5em 0;border:1px solid var(--garis);border-radius:var(--radius);background:var(--kertas-2)}
+  table.tabel{width:100%;border-collapse:collapse;font:.84rem/1.55 var(--sans);color:var(--tinta-2);min-width:660px}
+  table.tabel.lebar{min-width:660px}
+  table.tabel th,table.tabel td{padding:9px 11px;border-bottom:1px solid var(--garis);text-align:left;vertical-align:middle}
+  table.tabel th{font-weight:600;color:var(--tinta-redup);font-size:.7rem;letter-spacing:.03em;line-height:1.4;vertical-align:bottom}
+  table.tabel td:first-child{color:var(--tinta)}
+  table.tabel td.n{font-family:var(--mono);font-size:.8rem;text-align:center;white-space:nowrap;color:var(--tinta)}
+  table.tabel tbody tr:hover{background:color-mix(in srgb,var(--tinta) 3%,transparent)}
+  table.tabel tbody tr.jeda td{color:var(--tinta-redup);letter-spacing:.2em;padding-top:2px;padding-bottom:2px;border-bottom:0}
+  table.tabel tr:last-child td{border-bottom:0}
+  .ctl[hidden]{display:none}
+  .hero h1{font-size:clamp(1.85rem,4.4vw,3.3rem);line-height:1.1;max-width:24ch;text-wrap:balance}
+  .hero .sub{font-size:1.15rem}
+  @media(max-width:700px){
+    #d-mode-ctl{gap:6px}
+    #d-mode-ctl .btn{flex:1 1 calc(50% - 3px);text-align:center}
+    #d-kelengkapan{gap:6px}
+    #d-kelengkapan .btn{flex:1 1 0;text-align:center}
+    #cv-dimensi{aspect-ratio:1.3/1!important}
+    #cv-cross,#cv-long{aspect-ratio:1.5/1!important}
+    #cv-ts{aspect-ratio:1.6/1!important}
+    #cv-panel{aspect-ratio:.95/1!important}
+    table.tabel{font-size:.77rem;min-width:620px}
+    table.tabel th,table.tabel td{padding:7px 7px}
+    table.tabel td.n{font-size:.74rem}
+  }
+</style>
+</head>
+<body class="materi" data-mk="struktur-data">
+<a class="lewati" href="#utama">Lewati ke konten</a>
+<div id="progres"></div>
+
+<header class="situs">
+  <div class="situs-isi">
+    <a class="merek" href="../../../index.html" aria-label="Bagus's Lab, beranda">
+      <span class="merek-tanda" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 26c4 0 5.6-1.3 6.8-7.4C11 13.2 12.9 8 16 8s5 5.2 6.2 10.6C23.4 24.7 25 26 29 26"/></svg>
+      </span>
+      <span class="merek-teks">Bagus's Lab</span>
+    </a>
+    <nav class="situs-nav" aria-label="Navigasi utama">
+      <a href="../../../index.html#arsip" aria-current="true">Lab</a>
+      <a href="../../../profil.html">Profile</a>
+    </nav>
+    <button id="tema" aria-label="Aktifkan tema gelap" title="Ganti tema">
+      <svg class="ikon-matahari" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
+      <svg class="ikon-bulan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.6 8.6 0 0 1 9.8 3.5a8.6 8.6 0 1 0 10.7 10.7z"/></svg>
+    </button>
+  </div>
+</header>
+
+<header class="hero">
+  <div class="label-bagian">Struktur Data</div>
+  <h1>Cross Section vs Time Series vs Longitudinal vs Panel</h1>
+  <p class="sub">Mengenali 4 struktur data dari pola pengamatannya</p>
+  <p class="identitas">Bagus Arya Dwipangga · Statistika · UNJ</p>
+</header>
+
+<main class="artikel" id="utama">
+
+<section class="muncul">
+  <div class="label-bagian">01 · Pendahuluan</div>
+  <h2>Dua dimensi dasar</h2>
+  <p>Setiap data yang diamati punya dua dimensi dasar: unit pengamatan, misalnya orang, rumah tangga, cabang toko, atau wilayah, dan waktu pengamatan. Unit ke-\(i\) ditulis dengan indeks \(i = 1, 2, \dots, N\), sedangkan waktu ke-\(t\) ditulis dengan indeks \(t\).</p>
+  <p>Perbedaan 4 struktur data di halaman ini terletak pada dua hal: apakah unit yang sama diamati lebih dari sekali, dan apakah jarak waktu antar-pengamatan selalu sama. Dari dua hal itu muncul empat pola:</p>
+  <ol>
+    <li><strong>Data <i>cross-section</i></strong>: banyak unit berbeda diamati pada satu titik waktu.</li>
+    <li><strong>Data <i>time series</i></strong>: satu unit diamati pada banyak titik waktu yang berjarak tetap.</li>
+    <li><strong>Data longitudinal</strong>: banyak subjek yang sama diamati berulang, dengan jarak waktu yang bisa berbeda antarsubjek.</li>
+    <li><strong>Data panel</strong>: banyak unit yang sama diamati pada periode waktu tetap, sehingga menjadi kasus khusus data longitudinal.</li>
+  </ol>
+  <p>Perbedaan 4 struktur data ini lebih mudah dilihat dengan ilustrasi pada bidang unit dan waktu. Gambar berikut memakai 6 unit amatan dan 8 periode waktu sebagai contoh, lalu menyorot sel mana yang benar-benar diamati pada tiap struktur.</p>
+  <div class="fig" id="fig-dimensi">
+    <h3 class="fig-judul">Ilustrasi perbedaan struktur data</h3>
+    <p class="fig-ket" style="margin:0 0 12px">Setiap sel menyatakan satu kombinasi unit dan waktu. Pilih struktur data untuk melihat sel mana yang diamati.</p>
+    <canvas id="cv-dimensi" style="aspect-ratio:1.6/1" role="img" aria-label="Kisi enam unit dan delapan periode; mode cross-section menyoroti satu kolom, time series satu baris, longitudinal titik-titik tidak beraturan, dan panel seluruh sel"></canvas>
+    <div class="grid"><span>mode<b id="d-mode">Panel</b></span><span>sel teramati<b id="d-sel">48</b></span><span>unit<b id="d-n">6</b></span><span>periode<b id="d-t">8</b></span></div>
+    <div class="ctl" id="d-mode-ctl" role="group" aria-label="Pilih struktur data">
+      <button type="button" class="btn" id="d-cs" aria-pressed="false">Cross-Section</button>
+      <button type="button" class="btn" id="d-ts" aria-pressed="false">Time Series</button>
+      <button type="button" class="btn" id="d-long" aria-pressed="false">Longitudinal</button>
+      <button type="button" class="btn p" id="d-panel" aria-pressed="true">Panel</button>
+    </div>
+    <div class="ctl" id="d-kelengkapan" role="group" aria-label="Kelengkapan panel">
+      <span class="lbl">Kelengkapan</span>
+      <button type="button" class="btn p" id="d-bal" aria-pressed="true">Seimbang</button>
+      <button type="button" class="btn" id="d-unbal" aria-pressed="false">Tak seimbang</button>
+    </div>
+    <p class="fig-ket" id="d-ket">Panel seimbang: setiap cabang diamati pada seluruh periode.</p>
+  </div>
+  <div class="temuan">Yang membedakan keempat struktur bukan nama metodenya, melainkan pola pengamatan: unit mana yang diamati, dan pada waktu apa.</div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">02 · Cross-Section</div>
+  <h2>Banyak unit, satu waktu</h2>
+  <p>Data <i>cross-section</i> mengamati banyak unit berbeda pada satu titik waktu. Setiap unit muncul satu kali, sehingga indeks waktunya bisa dihilangkan dan pengamatan cukup ditulis sebagai \((Y_i, \mathbf{x}_i)\) untuk \(i = 1, 2, \dots, N\).</p>
+  <p>Karena tidak ada pengamatan berulang pada unit yang sama, data <i>cross-section</i> dapat membandingkan kondisi antar-unit pada satu waktu, tetapi tidak dapat melacak perubahan satu unit dari waktu ke waktu.</p>
+
+  <h3>Contoh kasus</h3>
+  <p>Contoh kasus untuk data <i>cross-section</i> adalah \(N = 20\) cabang toko berbeda dalam satu jaringan ritel pada Juni 2026. Peubah yang dicatat adalah omzet penjualan bulanan (\(Y_i\), dalam juta rupiah), biaya promosi bulanan (\(X_{1i}\), dalam juta rupiah), dan luas lantai gerai (\(X_{2i}\), dalam \(\text{m}^2\)).</p>
+  <div class="tabel-gulir">
+    <table class="tabel">
+      <thead>
+        <tr><th>Indeks unit<br>(\(i\))</th><th>Cabang</th><th>Periode<br>(\(t_0\))</th><th>Omzet penjualan<br>(\(Y_i\), Rp juta)</th><th>Biaya promosi<br>(\(X_{1i}\), Rp juta)</th><th>Luas gerai<br>(\(X_{2i}\), m<sup>2</sup>)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="n">1</td><td>Cabang Menteng</td><td>Juni 2026</td><td class="n">420,0</td><td class="n">18,0</td><td class="n">320</td></tr>
+        <tr><td class="n">2</td><td>Cabang Kelapa Gading</td><td>Juni 2026</td><td class="n">685,0</td><td class="n">32,0</td><td class="n">540</td></tr>
+        <tr><td class="n">3</td><td>Cabang Bekasi</td><td>Juni 2026</td><td class="n">290,0</td><td class="n">11,5</td><td class="n">210</td></tr>
+        <tr><td class="n">4</td><td>Cabang Tangerang</td><td>Juni 2026</td><td class="n">510,0</td><td class="n">24,0</td><td class="n">410</td></tr>
+        <tr><td class="n">5</td><td>Cabang Depok</td><td>Juni 2026</td><td class="n">355,0</td><td class="n">14,0</td><td class="n">260</td></tr>
+        <tr class="jeda"><td class="n">⋮</td><td>⋮</td><td>⋮</td><td class="n">⋮</td><td class="n">⋮</td><td class="n">⋮</td></tr>
+        <tr><td class="n">20</td><td>Cabang Rawamangun</td><td>Juni 2026</td><td class="n">330,0</td><td class="n">13,5</td><td class="n">235</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Data ini memungkinkan estimasi pengaruh biaya promosi dan luas gerai terhadap omzet penjualan antar-cabang pada Juni 2026 melalui regresi linier \(Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \varepsilon_i\). Namun, data ini tidak dapat digunakan untuk mengukur laju pertumbuhan omzet antarwaktu.</p>
+
+  <div class="fig" id="fig-cross">
+    <h3 class="fig-judul">Omzet dan biaya promosi 20 cabang, Juni 2026</h3>
+    <p class="fig-ket" style="margin:0 0 12px">Setiap titik adalah satu cabang. Data ilustrasi.</p>
+    <canvas id="cv-cross" style="aspect-ratio:2.1/1" role="img" aria-label="Diagram pencar biaya promosi dan omzet dua puluh cabang pada Juni 2026; omzet cenderung naik seiring biaya promosi"></canvas>
+  </div>
+  <div class="temuan">Data <i>cross-section</i> membandingkan banyak cabang pada satu bulan, tetapi tidak dapat menunjukkan perubahan satu cabang antarwaktu.</div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">03 · Time Series</div>
+  <h2>Satu unit, banyak waktu</h2>
+  <p>Data <i>time series</i> mengamati satu unit yang sama secara berurutan dari waktu ke waktu. Indeks unit dihilangkan, sehingga pengamatan ditulis sebagai \((Y_t, \mathbf{x}_t)\) untuk \(t = 1, 2, \dots, T\), dengan jarak antar-pengamatan biasanya tetap, misalnya harian, bulanan, atau tahunan.</p>
+  <p>Urutan waktu pada data ini penting. Nilai pada satu bulan berkaitan dengan bulan sebelumnya, sehingga baris data tidak boleh diacak seperti pada data <i>cross-section</i>.</p>
+
+  <h3>Contoh kasus</h3>
+  <p>Contoh kasus untuk data <i>time series</i> adalah omzet bulanan Cabang Menteng selama Januari sampai Juni 2026. Peubah yang dicatat adalah omzet penjualan bulanan (\(Y_t\), dalam juta rupiah) dan biaya promosi bulanan (\(X_t\), dalam juta rupiah).</p>
+  <div class="tabel-gulir">
+    <table class="tabel">
+      <thead>
+        <tr><th>Indeks waktu<br>(\(t\))</th><th>Bulan</th><th>Cabang</th><th>Omzet penjualan<br>(\(Y_t\), Rp juta)</th><th>Biaya promosi<br>(\(X_t\), Rp juta)</th><th>Omzet bulan sebelumnya<br>(\(Y_{t-1}\), Rp juta)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="n">1</td><td>Januari 2026</td><td>Cabang Menteng</td><td class="n">365,0</td><td class="n">14,0</td><td class="n">-</td></tr>
+        <tr><td class="n">2</td><td>Februari 2026</td><td>Cabang Menteng</td><td class="n">378,0</td><td class="n">15,0</td><td class="n">365,0</td></tr>
+        <tr><td class="n">3</td><td>Maret 2026</td><td>Cabang Menteng</td><td class="n">405,0</td><td class="n">17,5</td><td class="n">378,0</td></tr>
+        <tr><td class="n">4</td><td>April 2026</td><td>Cabang Menteng</td><td class="n">398,0</td><td class="n">16,0</td><td class="n">405,0</td></tr>
+        <tr><td class="n">5</td><td>Mei 2026</td><td>Cabang Menteng</td><td class="n">410,0</td><td class="n">17,0</td><td class="n">398,0</td></tr>
+        <tr><td class="n">6</td><td>Juni 2026</td><td>Cabang Menteng</td><td class="n">420,0</td><td class="n">18,0</td><td class="n">410,0</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Dengan data ini, perubahan omzet Cabang Menteng dari bulan ke bulan dapat dilihat langsung, dan pola yang sama dapat dipakai untuk memperkirakan omzet bulan berikutnya. Data ini tidak dapat membandingkan Cabang Menteng dengan cabang lain, karena hanya satu cabang yang diamati.</p>
+
+  <div class="fig" id="fig-ts">
+    <h3 class="fig-judul">Omzet bulanan Cabang Menteng, Januari sampai Juni 2026</h3>
+    <p class="fig-ket" style="margin:0 0 12px">Satu garis untuk satu cabang. Data ilustrasi.</p>
+    <canvas id="cv-ts" style="aspect-ratio:2.1/1" role="img" aria-label="Grafik garis omzet bulanan Cabang Menteng dari Januari 365 juta rupiah naik ke Juni 420 juta rupiah dengan penurunan kecil pada April"></canvas>
+    <p class="fig-ket">Setiap titik adalah satu bulan. Urutan bulan membentuk satu lintasan, bukan kumpulan nilai yang bisa diacak.</p>
+  </div>
+  <div class="temuan">Pada data <i>time series</i>, urutan waktu tidak boleh diacak. Baris data membawa informasi tentang dinamika satu unit.</div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">04 · Longitudinal</div>
+  <h2>Subjek sama, jadwal bebas</h2>
+  <p>Data longitudinal mengamati subjek yang sama secara berulang. Setiap subjek bisa punya jumlah pengamatan yang berbeda, dan waktu pengamatannya tidak harus berjarak sama. Pengamatan ke-\(j\) pada subjek ke-\(i\) ditulis sebagai \((Y_{ij}, \mathbf{x}_{ij}, t_{ij})\) untuk \(i = 1, 2, \dots, N\) dan \(j = 1, 2, \dots, n_i\).</p>
+  <p>Ketidakseragaman ini wajar dalam studi lapangan: jadwal kunjungan menyesuaikan subjek, dan sebagian subjek bisa berhenti diamati sebelum studi selesai (<i>attrition</i>).</p>
+
+  <h3>Contoh kasus</h3>
+  <p>Contoh kasus untuk data longitudinal adalah pemantauan skor indeks kepuasan pelanggan (\(Y_{ij}\), skala 0 sampai 100) pada \(N = 4\) cabang setelah pembaruan sistem kasir dan tata letak gerai. Waktu audit \(t_{ij}\) dicatat dalam bulan sejak pembaruan selesai, dan peubah penjelasnya adalah jumlah staf terlatih per <i>shift</i> (\(X_{ij}\), dalam orang). Jadwal kunjungan tidak sama antarcabang, dan Cabang Bekasi berhenti diamati setelah bulan ke-3 karena gerai ditutup untuk relokasi.</p>
+  <div class="tabel-gulir">
+    <table class="tabel">
+      <thead>
+        <tr><th>Subjek<br>(\(i\))</th><th>Cabang</th><th>Pengamatan ke-<br>(\(j\))</th><th>Waktu audit<br>(\(t_{ij}\), bulan)</th><th>Skor kepuasan<br>(\(Y_{ij}\))</th><th>Staf terlatih<br>(\(X_{ij}\), orang)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="n">1</td><td>Cabang Menteng</td><td class="n">1</td><td class="n">0,0</td><td class="n">72,0</td><td class="n">6</td></tr>
+        <tr><td class="n">1</td><td>Cabang Menteng</td><td class="n">2</td><td class="n">1,5</td><td class="n">76,5</td><td class="n">7</td></tr>
+        <tr><td class="n">1</td><td>Cabang Menteng</td><td class="n">3</td><td class="n">4,0</td><td class="n">81,0</td><td class="n">8</td></tr>
+        <tr><td class="n">1</td><td>Cabang Menteng</td><td class="n">4</td><td class="n">8,5</td><td class="n">85,5</td><td class="n">8</td></tr>
+        <tr><td class="n">2</td><td>Cabang Kelapa Gading</td><td class="n">1</td><td class="n">0,0</td><td class="n">75,0</td><td class="n">9</td></tr>
+        <tr><td class="n">2</td><td>Cabang Kelapa Gading</td><td class="n">2</td><td class="n">3,0</td><td class="n">80,5</td><td class="n">10</td></tr>
+        <tr><td class="n">2</td><td>Cabang Kelapa Gading</td><td class="n">3</td><td class="n">7,5</td><td class="n">86,0</td><td class="n">11</td></tr>
+        <tr><td class="n">3</td><td>Cabang Bekasi</td><td class="n">1</td><td class="n">0,0</td><td class="n">68,0</td><td class="n">5</td></tr>
+        <tr><td class="n">3</td><td>Cabang Bekasi</td><td class="n">2</td><td class="n">3,0</td><td class="n">70,5</td><td class="n">5</td></tr>
+        <tr><td class="n">4</td><td>Cabang Tangerang</td><td class="n">1</td><td class="n">0,0</td><td class="n">70,0</td><td class="n">7</td></tr>
+        <tr><td class="n">4</td><td>Cabang Tangerang</td><td class="n">2</td><td class="n">1,0</td><td class="n">73,0</td><td class="n">8</td></tr>
+        <tr><td class="n">4</td><td>Cabang Tangerang</td><td class="n">3</td><td class="n">3,5</td><td class="n">77,5</td><td class="n">8</td></tr>
+        <tr><td class="n">4</td><td>Cabang Tangerang</td><td class="n">4</td><td class="n">6,0</td><td class="n">81,0</td><td class="n">9</td></tr>
+        <tr><td class="n">4</td><td>Cabang Tangerang</td><td class="n">5</td><td class="n">9,0</td><td class="n">84,5</td><td class="n">10</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Jumlah pengamatan tiap cabang berbeda, yaitu 4, 3, 2, dan 5, dan waktu auditnya tidak sejajar antarcabang. Struktur seperti ini dipakai untuk melihat laju perubahan di dalam tiap cabang sekaligus membandingkan laju antar cabang, tanpa membuang cabang yang pengamatannya lebih sedikit.</p>
+
+  <div class="fig" id="fig-long">
+    <h3 class="fig-judul">Skor kepuasan empat cabang pada waktu audit yang berbeda</h3>
+    <p class="fig-ket" style="margin:0 0 12px">Setiap garis menghubungkan pengamatan pada satu cabang. Data ilustrasi.</p>
+    <canvas id="cv-long" style="aspect-ratio:2.1/1" role="img" aria-label="Grafik garis skor kepuasan empat cabang pada waktu audit yang tidak beraturan; Cabang Bekasi berhenti pada bulan ke-3"></canvas>
+    <p class="fig-ket">Titik pengamatan tidak sejajar antarcabang, dan tanda silang menandai akhir pengamatan Cabang Bekasi.</p>
+  </div>
+  <div class="temuan">Data longitudinal mengikuti subjek yang sama, sehingga perubahan di dalam subjek dan perbedaan antar subjek dapat dibaca bersamaan.</div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">05 · Panel</div>
+  <h2>Unit sama, periode seragam</h2>
+  <p>Data panel mengamati unit yang sama pada periode waktu yang tetap dan sama panjang. Setiap pengamatan ditulis sebagai \((Y_{it}, \mathbf{x}_{it})\) untuk \(i = 1, 2, \dots, N\) dan \(t = 1, 2, \dots, T\).</p>
+  <p>Data panel dapat dipandang sebagai kasus khusus data longitudinal: subjeknya sama, tetapi jadwal pengamatannya diseragamkan. Karena itu, panel sering dipakai ketika data dikumpulkan rutin, misalnya per kuartal untuk semua cabang.</p>
+  <p>Panel <strong>seimbang</strong> terjadi bila setiap unit diamati pada seluruh periode. Panel <strong>tak seimbang</strong> terjadi bila sebagian unit tidak punya pengamatan pada satu atau beberapa periode, misalnya cabang yang baru dibuka atau tutup sementara.</p>
+
+  <h3>Contoh kasus</h3>
+  <p>Contoh kasus untuk data panel adalah omzet kuartalan \(N = 4\) cabang pada Kuartal I sampai Kuartal III 2026. Peubah yang diamati adalah omzet penjualan kuartalan (\(Y_{it}\), dalam juta rupiah), biaya promosi kuartalan (\(X_{1it}\), dalam juta rupiah), dan jumlah hari program diskon aktif dalam satu kuartal (\(X_{2it}\), dalam hari).</p>
+  <div class="tabel-gulir">
+    <table class="tabel">
+      <thead>
+        <tr><th>Unit<br>(\(i\))</th><th>Cabang</th><th>Kuartal<br>(\(t\))</th><th>Omzet kuartalan<br>(\(Y_{it}\), Rp juta)</th><th>Biaya promosi<br>(\(X_{1it}\), Rp juta)</th><th>Hari diskon aktif<br>(\(X_{2it}\), hari)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="n">1</td><td>Cabang Menteng</td><td>1 (Kuartal I)</td><td class="n">1.148,0</td><td class="n">46,5</td><td class="n">18</td></tr>
+        <tr><td class="n">1</td><td>Cabang Menteng</td><td>2 (Kuartal II)</td><td class="n">1.228,0</td><td class="n">51,0</td><td class="n">21</td></tr>
+        <tr><td class="n">1</td><td>Cabang Menteng</td><td>3 (Kuartal III)</td><td class="n">1.295,0</td><td class="n">54,5</td><td class="n">24</td></tr>
+        <tr><td class="n">2</td><td>Cabang Kelapa Gading</td><td>1 (Kuartal I)</td><td class="n">1.890,0</td><td class="n">82,0</td><td class="n">20</td></tr>
+        <tr><td class="n">2</td><td>Cabang Kelapa Gading</td><td>2 (Kuartal II)</td><td class="n">1.985,0</td><td class="n">88,5</td><td class="n">23</td></tr>
+        <tr><td class="n">2</td><td>Cabang Kelapa Gading</td><td>3 (Kuartal III)</td><td class="n">2.070,0</td><td class="n">93,0</td><td class="n">25</td></tr>
+        <tr><td class="n">3</td><td>Cabang Bekasi</td><td>1 (Kuartal I)</td><td class="n">810,0</td><td class="n">31,0</td><td class="n">14</td></tr>
+        <tr><td class="n">3</td><td>Cabang Bekasi</td><td>2 (Kuartal II)</td><td class="n">855,0</td><td class="n">34,5</td><td class="n">16</td></tr>
+        <tr><td class="n">3</td><td>Cabang Bekasi</td><td>3 (Kuartal III)</td><td class="n">890,0</td><td class="n">36,0</td><td class="n">18</td></tr>
+        <tr><td class="n">4</td><td>Cabang Tangerang</td><td>1 (Kuartal I)</td><td class="n">1.410,0</td><td class="n">62,0</td><td class="n">17</td></tr>
+        <tr><td class="n">4</td><td>Cabang Tangerang</td><td>2 (Kuartal II)</td><td class="n">1.490,0</td><td class="n">67,5</td><td class="n">20</td></tr>
+        <tr><td class="n">4</td><td>Cabang Tangerang</td><td>3 (Kuartal III)</td><td class="n">1.560,0</td><td class="n">71,0</td><td class="n">22</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Tabel di atas adalah panel seimbang: 4 cabang, 3 kuartal, dan 12 pengamatan. Bila laporan Kuartal III Cabang Bekasi tidak tercatat karena renovasi, jumlahnya menjadi 11 pengamatan dan strukturnya berubah menjadi panel tak seimbang.</p>
+
+  <div class="fig" id="fig-panel">
+    <h3 class="fig-judul">Panel seimbang dan panel tak seimbang</h3>
+    <p class="fig-ket" style="margin:0 0 12px">Empat cabang, tiga kuartal. Data ilustrasi.</p>
+    <canvas id="cv-panel" style="aspect-ratio:2.2/1" role="img" aria-label="Dua grafik garis: panel seimbang dengan empat cabang lengkap tiga kuartal, dan panel tak seimbang dengan Cabang Bekasi hanya sampai kuartal kedua"></canvas>
+    <p class="fig-ket">Panel seimbang mengamati semua cabang pada ketiga kuartal. Pada panel tak seimbang, pengamatan Kuartal III Cabang Bekasi tidak ada.</p>
+  </div>
+  <div class="temuan">Panel menyeragamkan jadwal pengamatan. Seimbang atau tidaknya panel ditentukan oleh ada atau tidaknya sel yang kosong.</div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">06 · Perbandingan</div>
+  <h2>Ringkasan perbedaan</h2>
+  <p>Empat struktur di atas bisa dibandingkan lewat pertanyaan yang sama: siapa yang diamati, berapa kali, dan apakah jarak waktunya seragam.</p>
+  <div class="tabel-gulir">
+    <table class="tabel lebar">
+      <thead>
+        <tr><th>Pembeda</th><th>Cross-Section</th><th>Time Series</th><th>Longitudinal</th><th>Panel</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Bentuk pengamatan</td><td>Banyak unit, satu waktu</td><td>Satu unit, banyak waktu</td><td>Banyak subjek, berulang</td><td>Banyak unit, periode tetap</td></tr>
+        <tr><td>Unit yang diamati</td><td>\(N\) unit berbeda</td><td>1 unit</td><td>\(N\) subjek yang sama</td><td>\(N\) unit yang sama</td></tr>
+        <tr><td>Jumlah waktu</td><td>1 titik waktu</td><td>\(T\) titik waktu</td><td>\(n_i\) pengamatan, bisa berbeda</td><td>\(T\) periode tetap</td></tr>
+        <tr><td>Unit sama antarwaktu</td><td>Tidak</td><td>Ya</td><td>Ya</td><td>Ya</td></tr>
+        <tr><td>Jarak waktu</td><td>Tidak berlaku</td><td>Tetap</td><td>Bisa berbeda</td><td>Tetap</td></tr>
+        <tr><td>Contoh di halaman ini</td><td>Omzet 20 cabang pada Juni 2026</td><td>Omzet bulanan Cabang Menteng</td><td>Skor kepuasan 4 cabang dengan jadwal audit berbeda</td><td>Omzet kuartalan 4 cabang</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Cara memilih</h3>
+  <ol>
+    <li><strong>Membandingkan banyak unit pada satu waktu.</strong> Gunakan data <i>cross-section</i>, misalnya untuk melihat hubungan antar-peubah pada satu periode.</li>
+    <li><strong>Mengikuti satu unit dari waktu ke waktu.</strong> Gunakan data <i>time series</i>, misalnya untuk melihat tren dan memperkirakan nilai berikutnya.</li>
+    <li><strong>Mengikuti banyak subjek dengan jadwal yang tidak seragam.</strong> Gunakan data longitudinal, misalnya pada studi lapangan yang jadwal kunjungannya menyesuaikan subjek.</li>
+    <li><strong>Mengikuti banyak unit pada periode yang sama.</strong> Gunakan data panel, misalnya pada laporan rutin per kuartal untuk semua cabang.</li>
+  </ol>
+  <div class="temuan">Pertanyaan penelitian menentukan struktur data yang dipakai, dan struktur data menentukan perbandingan apa yang bisa dibuat.</div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">07 · Referensi</div>
+  <h2>Bacaan lanjutan</h2>
+  <ul class="sumber">
+    <li>Baltagi, B. H. (2021). <i>Econometric Analysis of Panel Data</i> (6th ed.). Springer.</li>
+    <li>Fitzmaurice, G. M., Laird, N. M., &amp; Ware, J. H. (2011). <i>Applied Longitudinal Analysis</i> (2nd ed.). John Wiley &amp; Sons.</li>
+    <li>Hyndman, R. J., &amp; Athanasopoulos, G. (2021). <i>Forecasting: Principles and Practice</i> (3rd ed.). OTexts.</li>
+    <li>Wooldridge, J. M. (2010). <i>Econometric Analysis of Cross Section and Panel Data</i> (2nd ed.). MIT Press.</li>
+  </ul>
+</section>
+
+<nav class="nav-bawah" aria-label="Navigasi materi">
+  <a class="kartu-nav" href="../../../index.html#arsip">
+    <span>Arsip</span>
+    <b>Kembali ke daftar materi</b>
+  </a>
+  <span></span>
+</nav>
+
+</main>
+<script src="../../../kit/vendor/katex/katex.min.js"></script>
+<script src="../../../kit/vendor/katex/auto-render.min.js"></script>
+<script src="../../../kit/kit.js"></script>
+<script src="widgets/dimensi.js"></script>
+<script src="widgets/cross_section.js"></script>
+<script src="widgets/time_series.js"></script>
+<script src="widgets/longitudinal.js"></script>
+<script src="widgets/panel.js"></script>
+</body>
+</html>

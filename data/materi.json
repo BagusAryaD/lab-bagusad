@@ -5,6 +5,11 @@
       "slug": "metode-simulasi-statistika",
       "nama": "Metode Simulasi Statistika",
       "ringkas": "Metode simulasi untuk pengembangan intuisi statistika."
+    },
+    {
+      "slug": "struktur-data",
+      "nama": "Struktur Data",
+      "ringkas": "Struktur data empiris menurut dimensi unit dan waktu, serta konsekuensinya bagi pemodelan."
     }
   ],
   "materi": [
@@ -52,6 +57,32 @@
       "kit": "0.4",
       "status": "selesai",
       "tanggal": "2026-11-19"
+    },
+    {
+      "slug": "struktur-data-dimensi-waktu",
+      "topik": "struktur-data",
+      "judul": "Cross Section vs Time Series vs Longitudinal vs Panel",
+      "subjudul": "Mengenali 4 struktur data dari pola pengamatannya",
+      "ringkas": "Empat struktur data dasar, dibedakan dari pola pengamatan unit dan waktu.",
+      "berkas": "materi/struktur-data/struktur-data-dimensi-waktu/index.html",
+      "sampul": "aset/sampul-struktur-data.jpg",
+      "sampul_gelap": "aset/sampul-struktur-data-gelap.jpg",
+      "sampul_alt": "Kisi unit dan waktu dengan sel pengamatan; mode panel menampilkan seluruh kombinasi unit dan periode",
+      "tujuan": [
+        "Membedakan data cross-section, time series, longitudinal, dan panel dari pola pengamatannya",
+        "Mengenali kapan satu unit diamati berulang dan kapan jarak waktunya seragam",
+        "Membedakan panel seimbang dan panel tak seimbang",
+        "Memilih struktur data yang sesuai dengan pertanyaan penelitian"
+      ],
+      "sumber": [
+        "Baltagi (2021), Econometric Analysis of Panel Data",
+        "Fitzmaurice, Laird, & Ware (2011), Applied Longitudinal Analysis",
+        "Hyndman & Athanasopoulos (2021), Forecasting: Principles and Practice",
+        "Wooldridge (2010), Econometric Analysis of Cross Section and Panel Data"
+      ],
+      "kit": "0.4",
+      "status": "selesai",
+      "tanggal": "2026-11-21"
     }
   ]
 }
