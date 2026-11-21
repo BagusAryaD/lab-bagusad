@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="id" data-tema="terang">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decision Tree · Machine Learning</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231A5276'/><path d='M4 25c3.6 0 5-1.2 6.1-6.7C11 13 12.8 8.5 15.9 8.5s4.9 4.5 5.8 9.8C22.8 23.8 24.2 25 27.8 25' fill='none' stroke='%23F9F8F5' stroke-width='2.4' stroke-linecap='round'/></svg>">
+<script>
+  try {
+    var t = localStorage.getItem('tema');
+    if (t ? t === 'gelap' : matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.dataset.tema = 'gelap';
+    }
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="../../../kit/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../../../kit/kit.css">
+<link rel="stylesheet" href="../../../kit/situs.css">
+<style>
+  /* gaya tabel: tidak ada di kit.css, wajib disalin di tiap halaman materi */
+  .tabel-gulir{overflow-x:auto;margin:1.5em 0;border:1px solid var(--garis);border-radius:var(--radius);background:var(--kertas-2)}
+  table.tabel{width:100%;border-collapse:collapse;font:.84rem/1.55 var(--sans);color:var(--tinta-2);min-width:660px}
+  table.tabel.lebar{min-width:660px}
+  table.tabel th,table.tabel td{padding:9px 11px;border-bottom:1px solid var(--garis);text-align:left;vertical-align:middle}
+  table.tabel th{font-weight:600;color:var(--tinta-redup);font-size:.7rem;letter-spacing:.03em;line-height:1.4;vertical-align:bottom}
+  table.tabel td:first-child{color:var(--tinta)}
+  table.tabel td.n{font-family:var(--mono);font-size:.8rem;text-align:center;white-space:nowrap;color:var(--tinta)}
+  table.tabel tbody tr:hover{background:color-mix(in srgb,var(--tinta) 3%,transparent)}
+  table.tabel tbody tr.jeda td{color:var(--tinta-redup);letter-spacing:.2em;padding-top:2px;padding-bottom:2px;border-bottom:0}
+  table.tabel tr:last-child td{border-bottom:0}
+  .ctl[hidden]{display:none}
+
+  /* tata letak figur: lokal halaman ini, bukan di kit/* */
+  .kisi-fig{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px;align-items:start}
+  .kisi-2{display:grid;grid-template-columns:1.35fr minmax(0,1fr);gap:18px;align-items:start}
+  .kisi-2b{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-top:14px}
+  .kisi-3{display:grid;grid-template-columns:1.4fr minmax(0,1fr);gap:18px;align-items:start}
+  .kisi-5{display:grid;grid-template-columns:minmax(0,28%) minmax(0,1fr);gap:18px;align-items:start}
+  .panel{min-width:0}
+  .kolom-ctl{display:flex;flex-direction:column;gap:10px}
+  .kolom-ctl .ctl{margin:0}
+  .panel-ket{font:.9rem/1.6 var(--sans);color:var(--tinta-2);margin:0}
+  .kandidat{display:flex;flex-direction:column;gap:10px}
+  .kandidat .kartu{background:var(--kertas);border:1px solid var(--garis);border-radius:var(--radius);padding:10px 12px;font:.82rem/1.5 var(--sans);color:var(--tinta-2);transition:var(--gerak-cepat)}
+  .kandidat .kartu b{display:block;color:var(--tinta);font-size:.86rem;margin-bottom:3px}
+  .kandidat .kartu.dipilih{border-color:var(--aksen-1);box-shadow:0 0 0 1px var(--aksen-1)}
+  .kandidat .kartu.redup{opacity:.5}
+  .langkah-algo{margin:0;padding:0;list-style:none;font:.82rem/1.5 var(--sans);color:var(--tinta-2)}
+  .langkah-algo li{padding:7px 10px;border-left:4px solid transparent;border-radius:0 var(--radius) var(--radius) 0;margin:0 0 6px}
+  .langkah-algo li.aktif{border-left-color:var(--aksen-1);background:color-mix(in srgb,var(--aksen-1) 9%,transparent);color:var(--tinta)}
+  .rincian{margin-top:12px;background:var(--kertas);border:1px solid var(--garis);border-radius:var(--radius);padding:12px 14px;font:.84rem/1.7 var(--sans);color:var(--tinta-2)}
+  .rincian b{color:var(--tinta)}
+
+  @media(max-width:860px){
+    .kisi-fig,.kisi-2,.kisi-2b,.kisi-3,.kisi-5{grid-template-columns:1fr}
+    #cv-pohon{aspect-ratio:1.25/1!important}
+    #cv-panggung{aspect-ratio:1.3/1!important}
+    #cv-mini{aspect-ratio:1.6/1!important}
+    #cv-impurity{aspect-ratio:1.3/1!important}
+    #cv-kandidat{aspect-ratio:1.1/1!important}
+    #cv-konstruksi{aspect-ratio:1.15/1!important}
+    #cv-kedalaman{aspect-ratio:1.25/1!important}
+  }
+  @media(max-width:700px){
+    table.tabel{font-size:.77rem;min-width:620px}
+    table.tabel th,table.tabel td{padding:7px 7px}
+    table.tabel td.n{font-size:.74rem}
+  }
+</style>
+</head>
+<body class="materi" data-mk="machine-learning">
+<a class="lewati" href="#utama">Lewati ke konten</a>
+<div id="progres"></div>
+
+<header class="situs">
+  <div class="situs-isi">
+    <a class="merek" href="../../../index.html" aria-label="Bagus's Lab, beranda">
+      <span class="merek-tanda" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 26c4 0 5.6-1.3 6.8-7.4C11 13.2 12.9 8 16 8s5 5.2 6.2 10.6C23.4 24.7 25 26 29 26"/></svg>
+      </span>
+      <span class="merek-teks">Bagus's Lab</span>
+    </a>
+    <nav class="situs-nav" aria-label="Navigasi utama">
+      <a href="../../../index.html#arsip" aria-current="true">Lab</a>
+      <a href="../../../profil.html">Profile</a>
+    </nav>
+    <button id="tema" aria-label="Aktifkan tema gelap" title="Ganti tema">
+      <svg class="ikon-matahari" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
+      <svg class="ikon-bulan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.6 8.6 0 0 1 9.8 3.5a8.6 8.6 0 1 0 10.7 10.7z"/></svg>
+    </button>
+  </div>
+</header>
+
+<header class="hero">
+  <div class="label-bagian">Machine Learning</div>
+  <h1>Decision Tree</h1>
+  <p class="sub">Klasifikasi dengan <i>decision tree</i></p>
+  <p class="identitas">Bagus Arya Dwipangga · Statistika · UNJ</p>
+</header>
+
+<main class="artikel" id="utama">
+
+<section class="muncul">
+  <div class="label-bagian">01 · Gagasan dasar</div>
+  <h2>Memprediksi keselamatan penumpang dengan rangkaian pertanyaan</h2>
+  <p>Materi ini memakai data penumpang kapal Titanic. Setiap penumpang dicatat jenis kelamin, kelas tiket (1, 2, atau 3), dan usianya, serta apakah penumpang tersebut selamat. Setelah baris dengan usia yang tidak tercatat dikeluarkan, tersisa 714 penumpang, dan 290 di antaranya (40,6%) selamat. Tujuannya adalah memprediksi keselamatan seorang penumpang dari tiga ciri tersebut.</p>
+  <p><i>Decision tree</i> memprediksi dengan mengajukan rangkaian pertanyaan ya atau tidak tentang ciri seorang penumpang. Jawaban atas satu pertanyaan menentukan pertanyaan berikutnya, sampai penumpang tiba pada sebuah kelompok. Prediksinya adalah kelas yang paling banyak di kelompok tersebut.</p>
+  <p>Contohnya, seorang penumpang perempuan di kelas 1 berusia 30 tahun menjawab "Apakah laki-laki?" dengan tidak, lalu "Apakah kelas 1 atau 2?" dengan ya. Penumpang itu tiba pada kelompok 159 penumpang perempuan kelas 1 atau 2, dan 150 di antaranya (94,3%) selamat. Prediksinya adalah selamat.</p>
+  <p>Istilah yang dipakai pada materi ini:</p>
+  <ul>
+    <li><i>Node</i>: sebuah kelompok penumpang pada suatu tahap pertanyaan.</li>
+    <li><i>Root node</i>: <i>node</i> awal yang memuat seluruh penumpang.</li>
+    <li><i>Split</i>: pertanyaan ya atau tidak berbentuk ciri \(\le\) nilai batas, misalnya usia \(\le 6{,}5\). Jawaban ya masuk ke <i>child node</i> kiri, jawaban tidak ke <i>child node</i> kanan.</li>
+    <li><i>Child node</i>: dua kelompok hasil sebuah <i>split</i>.</li>
+    <li><i>Leaf node</i>: <i>node</i> akhir yang tidak dibagi lagi dan memberikan prediksi.</li>
+    <li>Kedalaman: banyaknya pertanyaan pada jalur terpanjang dari <i>root node</i> ke sebuah <i>leaf node</i>.</li>
+  </ul>
+
+  <div class="fig" id="fig-pohon">
+    <h3 class="fig-judul">Jalur prediksi penumpang pada <i>decision tree</i> kedalaman 2</h3>
+    <p class="fig-ket" style="margin:0 0 12px">Pohon pada gambar ini dibangun oleh algoritma yang dijelaskan pada bagian 02 sampai 05, dari 714 penumpang Titanic yang usianya tercatat.</p>
+    <div class="kisi-fig">
+      <div class="kolom-ctl">
+        <div class="ctl" role="group" aria-label="Jenis kelamin">
+          <span class="lbl">Jenis kelamin</span>
+          <button type="button" class="btn p" id="pohon-perempuan" aria-pressed="true">Perempuan</button>
+          <button type="button" class="btn" id="pohon-laki" aria-pressed="false">Laki-laki</button>
+        </div>
+        <div class="ctl" role="group" aria-label="Kelas tiket">
+          <span class="lbl">Kelas tiket</span>
+          <button type="button" class="btn p" id="pohon-k1" aria-pressed="true">1</button>
+          <button type="button" class="btn" id="pohon-k2" aria-pressed="false">2</button>
+          <button type="button" class="btn" id="pohon-k3" aria-pressed="false">3</button>
+        </div>
+        <div class="ctl">
+          <label class="lbl" for="pohon-usia">Usia (tahun)</label>
+          <input type="range" id="pohon-usia" min="0" max="80" step="0.5" value="30" aria-valuetext="30 tahun" style="flex:1;min-width:110px;accent-color:var(--aksen-1)">
+        </div>
+        <div class="ctl">
+          <button type="button" class="btn" id="pohon-minus" aria-label="Kurangi usia 0,5 tahun">−</button>
+          <b id="pohon-usia-nilai">30</b>
+          <button type="button" class="btn" id="pohon-plus" aria-label="Tambah usia 0,5 tahun">+</button>
+        </div>
+        <div class="ctl">
+          <button type="button" class="btn" id="pohon-contoh1">Contoh 1: perempuan, kelas 1, usia 30</button>
+          <button type="button" class="btn" id="pohon-contoh2">Contoh 2: laki-laki, kelas 3, usia 22</button>
+        </div>
+      </div>
+      <div class="panel">
+        <canvas id="cv-pohon" style="aspect-ratio:640/400" role="img" aria-label="Pohon keputusan kedalaman dua: akar menanyakan apakah laki-laki, cabang kiri menanyakan usia, cabang kanan menanyakan kelas tiket, dan empat daun memberi prediksi selamat atau tidak selamat"></canvas>
+      </div>
+    </div>
+    <p class="fig-ket" id="pohon-hasil" aria-live="polite">Prediksi: <strong>selamat</strong>. Kelompok akhir: perempuan, kelas 1 atau 2, 159 penumpang, 150 di antaranya selamat (94,3%).</p>
+  </div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">02 · Cara algoritma bekerja</div>
+  <h2>Memilih pertanyaan yang menghasilkan kelompok paling homogen</h2>
+  <p>Algoritma membangun <i>decision tree</i> dengan mengulang pekerjaan yang sama pada setiap kelompok:</p>
+  <ol>
+    <li>Mulai dari satu kelompok yang berisi seluruh penumpang.</li>
+    <li>Susun kandidat pertanyaan. Setiap kandidat adalah satu ciri dengan satu nilai batas, misalnya jenis kelamin, kelas tiket \(\le 2\), atau usia \(\le\) suatu nilai.</li>
+    <li>Untuk setiap kandidat, bagi kelompok menurut jawaban ya atau tidak, lalu hitung berapa penumpang yang salah diprediksi jika setiap kelompok hasil pembagian diprediksi dengan kelas yang lebih banyak di dalamnya.</li>
+    <li>Pilih kandidat dengan salah prediksi paling sedikit.</li>
+    <li>Ulangi langkah 2 sampai 4 pada kedua kelompok hasil pembagian.</li>
+    <li>Berhenti pada kelompok yang hanya berisi satu kelas atau yang sudah mencapai batas kedalaman. Kelompok tersebut menjadi <i>leaf node</i>.</li>
+  </ol>
+  <p>Pada bagian ini kualitas sebuah pertanyaan diukur dengan banyaknya penumpang yang salah diprediksi, karena ukuran itu mudah dihitung. Ukuran tersebut bukan yang dipakai algoritma sebenarnya. Bagian 03 menjelaskan ukuran penggantinya dan alasannya.</p>
+  <p>Figur 2 menjalankan prosedur ini pada sampel 20 penumpang, dengan 9 penumpang selamat dan 11 tidak selamat. Jika semua penumpang diprediksi tidak selamat, 9 penumpang salah. Tiga pertanyaan diuji pada kelompok awal:</p>
+  <ul>
+    <li>"Apakah laki-laki?" menghasilkan 10 penumpang laki-laki (9 tidak selamat, 1 selamat) dan 10 penumpang perempuan (2 tidak selamat, 8 selamat). Salah prediksinya \(1 + 2 = 3\).</li>
+    <li>"Apakah kelas 1 atau 2?" menghasilkan 14 penumpang (5 tidak selamat, 9 selamat) dan 6 penumpang (6 tidak selamat). Salah prediksinya \(5 + 0 = 5\).</li>
+    <li>"Apakah usia \(\le 35{,}5\) tahun?" menghasilkan 16 penumpang (10 tidak selamat, 6 selamat) dan 4 penumpang (1 tidak selamat, 3 selamat). Salah prediksinya \(6 + 1 = 7\).</li>
+  </ul>
+  <p>Pertanyaan tentang jenis kelamin memiliki salah prediksi paling sedikit sehingga dipilih. Prosedur yang sama diulang pada kelompok laki-laki dan kelompok perempuan sampai setiap kelompok akhir hanya berisi satu kelas. Untuk setiap ciri, Figur 2 hanya menampilkan nilai batas terbaik, sedangkan algoritma menguji semua nilai batas yang mungkin.</p>
+  <p>Pada sampel kecil, empat kelompok akhir semuanya seragam sehingga 20 dari 20 penumpang diprediksi benar. Pada seluruh 714 penumpang, kelompok akhir pada kedalaman yang wajar masih berisi dua kelas (Figur 5).</p>
+
+  <div class="fig" id="fig-pemilihan">
+    <h3 class="fig-judul">Pemilihan pertanyaan terbaik pada sampel 20 penumpang</h3>
+    <p class="fig-ket" style="margin:0 0 12px">Sampel 20 penumpang Titanic, dipilih acak dari 714 baris. Satu titik adalah satu penumpang.</p>
+    <div class="kisi-2">
+      <div class="panel">
+        <canvas id="cv-panggung" style="aspect-ratio:560/320" role="img" aria-label="Panggung berisi kelompok penumpang sebagai titik: lingkaran untuk selamat dan belah ketupat untuk tidak selamat, terbagi menjadi dua kotak setiap kali sebuah pertanyaan diuji"></canvas>
+      </div>
+      <div class="panel">
+        <div class="kandidat" id="pemilihan-kandidat"></div>
+      </div>
+    </div>
+    <div class="kisi-2b">
+      <div class="panel">
+        <canvas id="cv-mini" style="aspect-ratio:360/220" role="img" aria-label="Diagram pohon mini yang bertambah satu simpul setiap kali sebuah pertanyaan dipilih"></canvas>
+      </div>
+      <div class="panel">
+        <p class="panel-ket" id="pemilihan-ket" aria-live="polite" style="min-height:96px">Kelompok awal: 20 penumpang, 9 selamat dan 11 tidak selamat. Jika semua penumpang diprediksi tidak selamat, 9 penumpang salah.</p>
+      </div>
+    </div>
+    <div class="ctl" role="group" aria-label="Kontrol animasi pemilihan">
+      <button type="button" class="btn p" id="pemilihan-putar">Putar</button>
+      <button type="button" class="btn" id="pemilihan-maju">+1 langkah</button>
+      <button type="button" class="btn" id="pemilihan-mundur" disabled>Mundur</button>
+      <button type="button" class="btn" id="pemilihan-ulang">Ulang</button>
+      <span class="lbl" id="pemilihan-langkah">Langkah 0 dari 10</span>
+    </div>
+  </div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">03 · Notasi dan ukuran impurity</div>
+  <h2>Mengukur homogenitas kelompok</h2>
+  <p>Bagian ini merumuskan secara formal gagasan pada bagian 02. Misalkan data latih \(\{(\mathbf{x}_i, y_i)\}_{i=1}^{n}\) dengan \(\mathbf{x}_i = (x_{i1}, \dots, x_{ip})\) dan kelas \(y_i \in \{1, \dots, K\}\). Pada data Titanic, \(n = 714\), \(p = 3\) (jenis kelamin, kelas tiket, usia), dan \(K = 2\). <i>Decision tree</i> dengan \(M\) <i>leaf node</i>, yang masing-masing mewakili wilayah \(R_m\) pada ruang prediktor, menghasilkan prediksi</p>
+  <div class="math">$$\hat{f}(\mathbf{x}) = \sum_{m=1}^{M} c_m \, \mathbf{1}\{\mathbf{x} \in R_m\}.$$</div>
+  <p>Pada klasifikasi, \(c_m\) adalah kelas mayoritas di \(R_m\). Jika \(n_m\) adalah banyaknya observasi di \(R_m\), maka</p>
+  <div class="math">$$\hat{p}_{mk} = \frac{1}{n_m} \sum_{\mathbf{x}_i \in R_m} \mathbf{1}\{y_i = k\}, \qquad c_m = \arg\max_{k} \hat{p}_{mk}.$$</div>
+  <p>Pemilihan <i>split</i> memerlukan ukuran seberapa homogen kelas di dalam sebuah <i>node</i>. Ukuran ini disebut <i>impurity</i>. Untuk <i>node</i> \(m\) dengan proporsi kelas \(\hat{p}_{m1}, \dots, \hat{p}_{mK}\), tiga ukuran yang umum dipakai adalah</p>
+  <div class="math">$$G_m = \sum_{k=1}^{K} \hat{p}_{mk}(1 - \hat{p}_{mk}) = 1 - \sum_{k=1}^{K} \hat{p}_{mk}^{2} \qquad \text{(indeks Gini)},$$</div>
+  <div class="math">$$H_m = -\sum_{k=1}^{K} \hat{p}_{mk} \log_2 \hat{p}_{mk} \qquad \text{(entropi, dengan } 0 \log_2 0 = 0\text{)},$$</div>
+  <div class="math">$$E_m = 1 - \max_{k} \hat{p}_{mk} \qquad \text{(galat klasifikasi)}.$$</div>
+  <p>Indeks Gini adalah peluang salah klasifikasi jika sebuah observasi di <i>node</i> \(m\) diberi kelas secara acak menurut proporsi \(\hat{p}_{mk}\). Ukuran yang dipakai pada bagian 02 adalah \(n_m E_m\), yaitu banyaknya observasi di <i>node</i> \(m\) yang salah diprediksi oleh kelas mayoritas.</p>
+  <p>Ketiga ukuran bernilai 0 pada <i>node</i> murni, yaitu <i>node</i> dengan \(\hat{p}_{mk} = 1\) untuk satu kelas. Nilai maksimumnya dicapai ketika semua kelas memiliki proporsi yang sama besar: \(G_m = 1 - 1/K\), \(H_m = \log_2 K\), dan \(E_m = 1 - 1/K\). Untuk dua kelas dengan \(p = \hat{p}_{m1}\), ketiganya menjadi \(G = 2p(1-p)\), \(H = -p \log_2 p - (1-p)\log_2(1-p)\), dan \(E = \min(p, 1-p)\).</p>
+  <p>Gini dan entropi mulus terhadap \(p\), sedangkan galat klasifikasi tidak terdiferensialkan di \(p = 1/2\). Galat klasifikasi juga kurang peka terhadap perubahan proporsi kelas. Contoh hipotetis berikut menunjukkan akibatnya. Sebuah <i>node</i> berisi 800 penumpang, dengan 400 penumpang untuk setiap kelas (\(G = 0{,}5\)). <i>Split</i> A menghasilkan dua kelompok dengan komposisi (kelas 0, kelas 1) \(= (100, 300)\) dan \((300, 100)\). <i>Split</i> B menghasilkan \((400, 200)\) dan \((0, 200)\).</p>
+  <div class="tabel-gulir">
+    <table class="tabel">
+      <thead>
+        <tr><th><i>Split</i></th><th>Salah prediksi</th><th>\(Q\)</th><th>\(\Delta = G - Q\)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>A</td><td class="n">100 + 100 = 200</td><td class="n">0,3750</td><td class="n">0,1250</td></tr>
+        <tr><td>B</td><td class="n">200 + 0 = 200</td><td class="n">0,3333</td><td class="n">0,1667</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Kedua <i>split</i> memberi salah prediksi yang sama, tetapi <i>split</i> B menghasilkan satu kelompok yang murni. Gini membedakan keduanya, sedangkan galat klasifikasi tidak. Karena itu Gini dan entropi dipakai untuk memilih <i>split</i>, sedangkan galat klasifikasi umumnya dipakai untuk mengevaluasi prediksi akhir.</p>
+
+  <div class="fig" id="fig-impurity">
+    <h3 class="fig-judul">Gini, entropi, dan galat klasifikasi terhadap proporsi kelas</h3>
+    <div class="kisi-3">
+      <div class="panel">
+        <canvas id="cv-impurity" style="aspect-ratio:560/340" role="img" aria-label="Tiga kurva terhadap proporsi penumpang selamat: Gini dan entropi berbentuk lengkung mulus, galat klasifikasi berbentuk segitiga, ketiganya nol pada proporsi 0 dan 1 serta mencapai puncak pada 0,5"></canvas>
+      </div>
+      <div class="panel">
+        <div class="grid" aria-live="polite">
+          <span>Gini<b id="imp-gini">0,4824</b></span>
+          <span>Entropi<b id="imp-entropi">0,9744 bit</b></span>
+          <span>Galat klasifikasi<b id="imp-galat">0,4062</b></span>
+        </div>
+        <div class="ctl">
+          <label class="lbl" for="imp-p">Proporsi penumpang selamat (p)</label>
+          <input type="range" id="imp-p" min="0" max="1" step="0.01" value="0.41" aria-valuetext="0,41" style="flex:1;min-width:130px;accent-color:var(--aksen-1)">
+        </div>
+        <div class="ctl" role="group" aria-label="Nilai p siap pakai">
+          <button type="button" class="btn" id="imp-p0">p = 0 (murni)</button>
+          <button type="button" class="btn" id="imp-p-root">p = 290/714 (root node Titanic)</button>
+          <button type="button" class="btn" id="imp-p05">p = 0,5 (sama besar)</button>
+        </div>
+        <div class="ctl">
+          <button type="button" class="btn" id="imp-skala" aria-pressed="false">Skala entropi ÷ 2</button>
+        </div>
+        <canvas id="cv-kisi" style="aspect-ratio:1/1;margin-top:12px" role="img" aria-label="Kisi sepuluh kali sepuluh berisi 100 penumpang; jumlah yang selamat mengikuti proporsi yang dipilih, digambar sebagai lingkaran, sisanya belah ketupat"></canvas>
+      </div>
+    </div>
+    <p class="fig-ket">Kurva dihitung dari rumus untuk dua kelas. Kisi di kanan menunjukkan komposisi <i>node</i> berisi 100 penumpang pada proporsi yang dipilih.</p>
+  </div>
+
+  <details class="temuan"><summary>Tebak dulu: sebuah <i>node</i> berisi 100 penumpang, 50 selamat dan 50 tidak selamat. Berapa indeks Gini-nya?</summary>
+    <p>0,5. Dengan dua kelas yang sama banyak, Gini mencapai nilai maksimumnya, \(1 - 1/K = 0{,}5\), dan entropinya bernilai 1 bit. Pada <i>root node</i> data Titanic, proporsi penumpang selamat adalah \(290/714 \approx 0{,}4062\), sehingga \(G = 0{,}4824\), \(H = 0{,}9744\) bit, dan \(E = 0{,}4062\).</p></details>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">04 · Kriteria split</div>
+  <h2>Memilih prediktor dan titik <i>split</i></h2>
+  <p>Agar setiap pertanyaan berbentuk \(x_j \le t\), prediktor dikodekan sebagai angka. Jenis kelamin dikodekan perempuan \(= 1\) dan laki-laki \(= 0\), sehingga satu-satunya kandidat adalah perempuan \(\le 0{,}5\). Kelas tiket diperlakukan sebagai angka terurut \(1, 2, 3\) dengan kandidat kelas \(\le 1{,}5\) dan kelas \(\le 2{,}5\). Usia adalah angka kontinu.</p>
+  <p>Pada <i>node</i> \(m\) dengan \(n_m\) observasi, sebuah kandidat <i>split</i> \(s = (j, t)\) membagi \(R_m\) menjadi</p>
+  <div class="math">$$R_L(j,t) = \{\mathbf{x} \in R_m : x_j \le t\}, \qquad R_R(j,t) = \{\mathbf{x} \in R_m : x_j > t\},$$</div>
+  <p>masing-masing dengan \(n_L\) dan \(n_R\) observasi. <i>Impurity</i> setelah <i>split</i> adalah rata-rata berbobot dari kedua <i>child node</i>:</p>
+  <div class="math">$$Q(s) = \frac{n_L}{n_m} G_L + \frac{n_R}{n_m} G_R.$$</div>
+  <p>Pengurangan <i>impurity</i> oleh <i>split</i> \(s\) dan <i>split</i> terbaik pada <i>node</i> \(m\) adalah</p>
+  <div class="math">$$\Delta(s) = G_m - Q(s), \qquad s^{*} = \arg\max_{(j,t)} \Delta(s).$$</div>
+  <p>Jika <i>impurity</i> yang dipakai adalah entropi, \(\Delta(s)\) disebut <i>information gain</i>. Karena Gini dan entropi adalah fungsi konkaf terhadap proporsi kelas, \(\Delta(s) \ge 0\) untuk setiap <i>split</i>.</p>
+  <p>Pada prediktor numerik, kandidat titik <i>split</i> adalah titik tengah antara dua nilai terurut yang berurutan dan berbeda,</p>
+  <div class="math">$$t_i = \frac{x_{(i)} + x_{(i+1)}}{2},$$</div>
+  <p>sehingga setiap prediktor memiliki paling banyak \(n_m - 1\) kandidat. Titik tengah dipakai karena semua titik di antara dua nilai berurutan menghasilkan partisi observasi yang sama. Pada <i>root node</i> data Titanic terdapat \(1 + 2 + 87 = 90\) kandidat: 1 untuk jenis kelamin, 2 untuk kelas tiket, dan 87 untuk usia (88 nilai usia berbeda).</p>
+  <p>Contoh pada <i>root node</i> dengan <i>split</i> perempuan \(\le 0{,}5\) (laki-laki ke kiri):</p>
+  <ul>
+    <li>\(G_m = 1 - (424/714)^2 - (290/714)^2 = 0{,}4824\).</li>
+    <li>\(R_L\) memuat 453 laki-laki (360 tidak selamat, 93 selamat) dengan \(G_L = 0{,}3263\). \(R_R\) memuat 261 perempuan (64 tidak selamat, 197 selamat) dengan \(G_R = 0{,}3702\).</li>
+    <li>\(Q = \frac{453}{714}(0{,}3263) + \frac{261}{714}(0{,}3702) = 0{,}3423\).</li>
+    <li>\(\Delta = 0{,}4824 - 0{,}3423 = 0{,}1401\).</li>
+  </ul>
+  <p>Dengan entropi, \(H_m = 0{,}9744\), \(H_L = 0{,}7324\), dan \(H_R = 0{,}8036\), sehingga <i>information gain</i> \(= 0{,}9744 - \frac{453}{714}(0{,}7324) - \frac{261}{714}(0{,}8036) = 0{,}2160\).</p>
+  <p>Perbandingan dengan kandidat terbaik pada prediktor lain:</p>
+  <div class="tabel-gulir">
+    <table class="tabel lebar">
+      <thead>
+        <tr><th>Kandidat</th><th>Kiri: \(n\)<br>(tidak, selamat)</th><th>Kanan: \(n\)<br>(tidak, selamat)</th><th>\(\Delta\) Gini</th><th><i>Information gain</i></th></tr>
+      </thead>
+      <tbody>
+        <tr><td>perempuan \(\le 0{,}5\)</td><td class="n">453 (360, 93)</td><td class="n">261 (64, 197)</td><td class="n">0,1401</td><td class="n">0,2160</td></tr>
+        <tr><td>kelas \(\le 2{,}5\)</td><td class="n">359 (154, 205)</td><td class="n">355 (270, 85)</td><td class="n">0,0550</td><td class="n">0,0842</td></tr>
+        <tr><td>kelas \(\le 1{,}5\)</td><td class="n">186 (64, 122)</td><td class="n">528 (360, 168)</td><td class="n">0,0439</td><td class="n">0,0652</td></tr>
+        <tr><td>usia \(\le 6{,}5\)</td><td class="n">47 (14, 33)</td><td class="n">667 (410, 257)</td><td class="n">0,0123</td><td class="n">0,0182</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Pertanyaan tentang jenis kelamin memberi pengurangan <i>impurity</i> terbesar sehingga menjadi <i>split</i> pada <i>root node</i>. Gini dan entropi menghasilkan urutan kandidat yang sama pada <i>node</i> ini.</p>
+
+  <div class="fig" id="fig-kandidat">
+    <h3 class="fig-judul">Pengurangan <i>impurity</i> terhadap kandidat <i>split</i> pada <i>root node</i></h3>
+    <div class="panel">
+      <canvas id="cv-kandidat" tabindex="0" style="aspect-ratio:720/340" role="img" aria-label="Tiga panel batang pengurangan impurity untuk 90 kandidat split: satu kandidat jenis kelamin, dua kandidat kelas tiket, dan 87 kandidat titik potong usia"></canvas>
+    </div>
+    <div class="ctl" role="group" aria-label="Ukuran impurity">
+      <span class="lbl">Ukuran</span>
+      <button type="button" class="btn p" id="kandidat-gini" aria-pressed="true">Gini</button>
+      <button type="button" class="btn" id="kandidat-entropi" aria-pressed="false">Entropi</button>
+      <button type="button" class="btn" id="kandidat-terbaik">Tampilkan split terbaik</button>
+    </div>
+    <div class="rincian" id="kandidat-rincian" aria-live="polite">
+      <b>perempuan ≤ 0,5 (laki-laki ke kiri)</b><br>
+      Ya (≤ 0,5): 453 (360 tidak selamat, 93 selamat), G = 0,3263<br>
+      Tidak (&gt; 0,5): 261 (64 tidak selamat, 197 selamat), G = 0,3702<br>
+      Q = 0,3423; G induk = 0,4824; Δ = 0,1401
+    </div>
+  </div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">05 · Algoritma</div>
+  <h2>Pembangunan <i>decision tree</i> dengan <i>recursive binary splitting</i></h2>
+  <p>Mencari <i>decision tree</i> yang optimal secara global tidak praktis. Algoritma yang dipakai membangun <i>decision tree</i> secara <i>greedy</i>: setiap <i>split</i> dipilih berdasarkan pengurangan <i>impurity</i> pada <i>node</i> saat itu saja, tanpa memperhitungkan <i>split</i> sesudahnya. Prosedurnya:</p>
+  <ol>
+    <li><strong>Inisialisasi.</strong> Mulai dari <i>root node</i> yang memuat seluruh data latih.</li>
+    <li><strong>Periksa kriteria berhenti</strong> pada <i>node</i> \(m\): (a) \(G_m = 0\), (b) \(n_m < n_{\min}\), (c) kedalaman mencapai \(d_{\max}\), atau (d) tidak ada kandidat <i>split</i> yang valid, yaitu semua observasi di <i>node</i> memiliki nilai prediktor yang sama. Jika salah satu terpenuhi, jadikan \(m\) sebagai <i>leaf node</i> dengan prediksi \(c_m = \arg\max_k \hat{p}_{mk}\).</li>
+    <li><strong>Pilih <i>split</i>.</strong> Hitung \(\Delta(s)\) untuk semua prediktor \(j\) dan semua kandidat titik <i>split</i> \(t\), lalu ambil \(s^{*}\).</li>
+    <li><strong>Bagi dan ulangi.</strong> Bagi data \(m\) menurut \(s^{*}\) menjadi \(R_L\) dan \(R_R\), lalu ulangi langkah 2 untuk setiap <i>child node</i>.</li>
+  </ol>
+  <p>Dengan data terurut dan penghitungan frekuensi kelas kumulatif, pencarian <i>split</i> terbaik pada satu <i>node</i> memerlukan \(O(p \, n_m \log n_m)\) operasi. Jika dua kandidat memberi pengurangan yang sama besar, urutan penelusuran prediktor menentukan pilihan. Pada scikit-learn urutan itu diacak oleh <code>random_state</code>.</p>
+  <p>Pemetaan notasi pada materi ini ke parameter <code>DecisionTreeClassifier</code>:</p>
+  <div class="tabel-gulir">
+    <table class="tabel">
+      <thead>
+        <tr><th>Notasi</th><th>Parameter</th><th>Nilai bawaan</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Ukuran <i>impurity</i> \(G\) atau \(H\)</td><td><code>criterion</code> (<code>'gini'</code>, <code>'entropy'</code>, <code>'log_loss'</code>)</td><td><code>'gini'</code></td></tr>
+        <tr><td>\(d_{\max}\)</td><td><code>max_depth</code></td><td>tidak dibatasi</td></tr>
+        <tr><td>\(n_{\min}\)</td><td><code>min_samples_split</code></td><td>2</td></tr>
+        <tr><td>Ambang pengurangan <i>impurity</i></td><td><code>min_impurity_decrease</code></td><td>0</td></tr>
+        <tr><td>Urutan penelusuran prediktor</td><td><code>random_state</code></td><td>tidak dikunci</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="fig" id="fig-konstruksi">
+    <h3 class="fig-judul">Konstruksi <i>decision tree</i> pada 714 penumpang per langkah <i>split</i></h3>
+    <div class="kisi-5">
+      <div class="panel">
+        <ol class="langkah-algo" id="konstruksi-langkah">
+          <li data-langkah="1">1. Inisialisasi</li>
+          <li data-langkah="2">2. Periksa kriteria berhenti</li>
+          <li data-langkah="3">3. Pilih split</li>
+          <li data-langkah="4">4. Bagi dan ulangi</li>
+        </ol>
+        <div class="grid" style="flex-direction:column;gap:8px">
+          <span>Jumlah leaf node<b id="kon-leaf">1</b></span>
+          <span>Kedalaman saat ini<b id="kon-kedalaman">0</b></span>
+          <span>Galat latih<b id="kon-galat">0,4062</b></span>
+        </div>
+      </div>
+      <div class="panel">
+        <canvas id="cv-konstruksi" style="aspect-ratio:760/430" role="img" aria-label="Pohon keputusan yang tumbuh satu simpul setiap langkah; kartu simpul memuat pertanyaan, jumlah penumpang, dan batang komposisi kelas"></canvas>
+      </div>
+    </div>
+    <div class="ctl" role="group" aria-label="Kontrol konstruksi pohon">
+      <button type="button" class="btn p" id="kon-putar">Putar</button>
+      <button type="button" class="btn" id="kon-maju">+1 split</button>
+      <button type="button" class="btn" id="kon-ulang">Ulang</button>
+      <label class="lbl" for="kon-kedalaman-maks">Kedalaman maksimum</label>
+      <input type="range" id="kon-kedalaman-maks" min="1" max="3" step="1" value="3" aria-valuetext="3" style="flex:1;min-width:110px;accent-color:var(--aksen-1)">
+      <b id="kon-kedalaman-nilai">3</b>
+    </div>
+    <p class="fig-ket" id="kon-ket">Tujuh <i>split</i> dibutuhkan untuk kedalaman 3. Setiap <i>split</i> melewati tiga fase: periksa, pilih, lalu bagi.</p>
+  </div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">06 · Penerapan dengan scikit-learn</div>
+  <h2><i>Decision tree</i> klasifikasi keselamatan penumpang Titanic</h2>
+  <p>Data dimuat dan disiapkan terlebih dahulu. Baris dengan usia tidak tercatat dikeluarkan, dan jenis kelamin dikodekan 0 atau 1.</p>
+  <div class="kode" data-bahasa="Python"><pre>import pandas as pd
+
+url = 'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/titanic.csv'
+titanic = pd.read_csv(url)
+
+data = titanic[['survived', 'sex', 'pclass', 'age']].dropna().copy()
+data['perempuan'] = (data['sex'] == 'female').astype(int)
+
+print(data.shape)
+print(data['survived'].value_counts())</pre></div>
+  <div class="kode" data-salin="tidak"><pre>(714, 5)
+survived
+0    424
+1    290
+Name: count, dtype: int64</pre></div>
+  <p>Model dibangun pada seluruh 714 penumpang agar angkanya sama dengan perhitungan pada bagian 04. Evaluasi pada data yang tidak dipakai untuk membangun model dilakukan pada bagian 07.</p>
+  <div class="kode" data-bahasa="Python"><pre>from sklearn.tree import DecisionTreeClassifier, export_text
+
+X = data[['perempuan', 'pclass', 'age']]
+y = data['survived']
+
+model = DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=0)
+model.fit(X, y)
+
+print(export_text(model, feature_names=list(X.columns), show_weights=True))</pre></div>
+  <div class="kode" data-salin="tidak"><pre>|--- perempuan &lt;= 0.50
+|   |--- age &lt;= 6.50
+|   |   |--- weights: [8.00, 16.00] class: 1
+|   |--- age &gt;  6.50
+|   |   |--- weights: [352.00, 77.00] class: 0
+|--- perempuan &gt;  0.50
+|   |--- pclass &lt;= 2.50
+|   |   |--- weights: [9.00, 150.00] class: 1
+|   |--- pclass &gt;  2.50
+|   |   |--- weights: [55.00, 47.00] class: 0</pre></div>
+  <p>Angka pada <code>weights</code> adalah banyaknya penumpang [tidak selamat, selamat] di setiap <i>leaf node</i>. Cabang pertama pada setiap <code>&lt;=</code> adalah jawaban ya. <i>Split</i> pada <i>root node</i> adalah perempuan \(\le 0{,}5\) dengan \(\Delta = 0{,}1401\), sama dengan hasil hitung tangan pada bagian 04. Keempat <i>leaf node</i>:</p>
+  <div class="tabel-gulir">
+    <table class="tabel lebar">
+      <thead>
+        <tr><th><i>Leaf node</i></th><th>Aturan</th><th>\(n_m\)</th><th>Tidak selamat</th><th>Selamat</th><th>Gini</th><th>Prediksi</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="n">1</td><td>laki-laki, usia \(\le 6{,}5\)</td><td class="n">24</td><td class="n">8</td><td class="n">16</td><td class="n">0,4444</td><td>selamat</td></tr>
+        <tr><td class="n">2</td><td>laki-laki, usia \(&gt; 6{,}5\)</td><td class="n">429</td><td class="n">352</td><td class="n">77</td><td class="n">0,2945</td><td>tidak selamat</td></tr>
+        <tr><td class="n">3</td><td>perempuan, kelas 1 atau 2</td><td class="n">159</td><td class="n">9</td><td class="n">150</td><td class="n">0,1068</td><td>selamat</td></tr>
+        <tr><td class="n">4</td><td>perempuan, kelas 3</td><td class="n">102</td><td class="n">55</td><td class="n">47</td><td class="n">0,4969</td><td>tidak selamat</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Prediksi untuk penumpang baru dibaca dari <code>predict</code> dan <code>predict_proba</code>. Dua contoh berikut sama dengan dua contoh siap pakai pada Figur 1.</p>
+  <div class="kode" data-bahasa="Python"><pre>baru = pd.DataFrame({'perempuan': [1, 0], 'pclass': [1, 3], 'age': [30, 22]})
+print(model.predict(baru))
+print(model.predict_proba(baru).round(3))</pre></div>
+  <div class="kode" data-salin="tidak"><pre>[1 0]
+[[0.057 0.943]
+ [0.821 0.179]]</pre></div>
+  <p>Penumpang pertama (perempuan, kelas 1, usia 30) diprediksi selamat dengan proporsi \(150/159 = 0{,}943\) pada <i>leaf node</i> 3. Penumpang kedua (laki-laki, kelas 3, usia 22) diprediksi tidak selamat dengan proporsi selamat \(77/429 = 0{,}179\) pada <i>leaf node</i> 2. Galat pada data yang sama dengan data latih adalah</p>
+  <div class="kode" data-bahasa="Python"><pre>print(1 - model.score(X, y))</pre></div>
+  <div class="kode" data-salin="tidak"><pre>0.19747899159663862</pre></div>
+  <p>yaitu 141 dari 714 penumpang (0,1975). Angka ini optimistis karena dihitung pada data yang dipakai untuk membangun model.</p>
+  <p>Pilihan <code>criterion</code> dapat mengubah struktur <i>decision tree</i>:</p>
+  <div class="kode" data-bahasa="Python"><pre>model_entropi = DecisionTreeClassifier(criterion='entropy', max_depth=2, random_state=0)
+model_entropi.fit(X, y)
+
+print(export_text(model_entropi, feature_names=list(X.columns), show_weights=True))</pre></div>
+  <div class="kode" data-salin="tidak"><pre>|--- perempuan &lt;= 0.50
+|   |--- pclass &lt;= 1.50
+|   |   |--- weights: [61.00, 40.00] class: 0
+|   |--- pclass &gt;  1.50
+|   |   |--- weights: [299.00, 53.00] class: 0
+|--- perempuan &gt;  0.50
+|   |--- pclass &lt;= 2.50
+|   |   |--- weights: [9.00, 150.00] class: 1
+|   |--- pclass &gt;  2.50
+|   |   |--- weights: [55.00, 47.00] class: 0</pre></div>
+  <p>Pada <i>node</i> laki-laki, entropi memilih kelas \(\le 1{,}5\) dan Gini memilih usia \(\le 6{,}5\). <i>Split</i> pilihan entropi tidak mengubah prediksi karena kedua <i>leaf node</i> tetap diprediksi tidak selamat, tetapi tetap mengurangi <i>impurity</i>. Galat latihnya menjadi \(149/714 = 0{,}2087\), sedikit lebih besar daripada model Gini. Ini contoh bahwa pengurangan <i>impurity</i> tidak identik dengan pengurangan salah prediksi.</p>
+  <p><i>Decision tree</i> yang sama dapat digambar dengan <code>plot_tree</code>:</p>
+  <div class="kode" data-bahasa="Python"><pre>import matplotlib.pyplot as plt
+from sklearn.tree import plot_tree
+
+plt.figure(figsize=(10, 5))
+plot_tree(model, feature_names=list(X.columns), class_names=['tidak selamat', 'selamat'], filled=True)
+plt.show()</pre></div>
+  <p>Keluaran gambar ini tidak perlu dibuat sebagai berkas terpisah karena Figur 1 menampilkan pohon yang sama secara interaktif.</p>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">07 · Overfitting dan kedalaman</div>
+  <h2>Pengaruh kedalaman terhadap galat latih dan galat uji</h2>
+  <p>Jika pembangunan diteruskan sampai semua <i>leaf node</i> murni, galat latih menjadi 0 selama tidak ada dua observasi dengan nilai prediktor identik tetapi kelas berbeda. Banyaknya <i>leaf node</i> dapat mencapai \(n\). <i>Decision tree</i> seperti ini mengikuti variasi acak pada data latih, bukan hanya pola sistematisnya. Kondisi ini disebut <i>overfitting</i>: galat latih kecil, tetapi galat uji besar.</p>
+  <p>Kedalaman mengatur keseimbangan bias dan varians. Pada kedalaman kecil, wilayah \(R_m\) terlalu kasar sehingga bias tinggi. Pada kedalaman besar, wilayah terlalu sempit dan bergantung pada observasi individual sehingga varians tinggi: perubahan kecil pada data latih dapat mengubah struktur <i>decision tree</i> secara besar. Kompleksitas dikendalikan oleh \(d_{\max}\) (<code>max_depth</code>), \(n_{\min}\) (<code>min_samples_split</code>), dan ambang pengurangan <i>impurity</i> (<code>min_impurity_decrease</code>). Nilai yang dipilih adalah yang meminimumkan galat pada data uji atau galat validasi silang.</p>
+  <p>Data dibagi menjadi 499 penumpang untuk melatih model dan 215 penumpang untuk menguji (70% dan 30%, dengan proporsi penumpang selamat dijaga sama pada kedua bagian). Galat dihitung untuk kedalaman 1 sampai 15.</p>
+  <div class="kode" data-bahasa="Python"><pre>from sklearn.model_selection import train_test_split
+
+X_latih, X_uji, y_latih, y_uji = train_test_split(X, y, test_size=0.3, stratify=y, random_state=42)
+
+hasil = []
+for d in range(1, 16):
+    m = DecisionTreeClassifier(max_depth=d, random_state=0).fit(X_latih, y_latih)
+    hasil.append({'max_depth': d,
+                  'galat_latih': 1 - m.score(X_latih, y_latih),
+                  'galat_uji': 1 - m.score(X_uji, y_uji)})
+
+print(pd.DataFrame(hasil).round(4).to_string(index=False))</pre></div>
+  <div class="kode" data-salin="tidak"><pre> max_depth  galat_latih  galat_uji
+         1       0.2164     0.2279
+         2       0.2044     0.2186
+         3       0.1904     0.2233
+         4       0.1703     0.2140
+         5       0.1603     0.2047
+         6       0.1503     0.2279
+         7       0.1383     0.2512
+         8       0.1242     0.2326
+         9       0.1082     0.2233
+        10       0.1022     0.2140
+        11       0.0982     0.2140
+        12       0.0962     0.2140
+        13       0.0962     0.2140
+        14       0.0962     0.2140
+        15       0.0962     0.2140</pre></div>
+  <div class="kode" data-bahasa="Python"><pre>tabel = pd.DataFrame(hasil)
+plt.plot(tabel['max_depth'], tabel['galat_latih'], marker='o', label='galat latih')
+plt.plot(tabel['max_depth'], tabel['galat_uji'], marker='o', label='galat uji')
+plt.xlabel('max_depth')
+plt.ylabel('galat klasifikasi')
+plt.legend()
+plt.show()</pre></div>
+  <p>Galat latih tidak pernah naik terhadap kedalaman, dari 0,2164 pada kedalaman 1 sampai 0,0962 pada kedalaman 13 dan seterusnya. Galat latih tidak mencapai 0 karena pada data ini ada penumpang dengan jenis kelamin, kelas, dan usia yang sama tetapi hasil berbeda. Pada kedalaman penuh (13), <i>decision tree</i> memiliki 101 <i>leaf node</i>. Galat uji turun sampai minimum 0,2047 pada kedalaman 5, naik ke 0,2512 pada kedalaman 7, dan mendatar di 0,2140 pada kedalaman 10 ke atas. <i>Leaf node</i> terkecil sudah hanya memuat 1 penumpang pada kedalaman 4.</p>
+  <p>Data uji hanya 215 penumpang, sehingga satu penumpang yang berpindah kelas prediksi mengubah galat uji sebesar \(1/215 \approx 0{,}0047\). Selisih kecil antarkedalaman tidak bermakna. Yang konsisten adalah polanya: galat latih terus menurun, sedangkan galat uji tidak. Figur 6 memungkinkan pembagian data diulang dengan <i>seed</i> lain.</p>
+
+  <div class="fig" id="fig-kedalaman">
+    <h3 class="fig-judul">Galat latih dan galat uji terhadap kedalaman maksimum</h3>
+    <div class="grid">
+      <span>Kedalaman<b id="ked-kedalaman">3</b></span>
+      <span>Jumlah <i>leaf node</i><b id="ked-leaf">8</b></span>
+      <span><i>Leaf</i> terkecil (n)<b id="ked-terkecil">2</b></span>
+      <span>Galat latih<b id="ked-latih">0,1904</b></span>
+      <span>Galat uji<b id="ked-uji">0,2233</b></span>
+    </div>
+    <canvas id="cv-kedalaman" style="aspect-ratio:640/340;margin-top:12px" role="img" aria-label="Dua kurva galat terhadap kedalaman maksimum: galat latih terus menurun, galat uji turun sampai kedalaman lima lalu naik dan mendatar"></canvas>
+    <div class="ctl" role="group" aria-label="Kontrol kedalaman dan pembagian data">
+      <label class="lbl" for="ked-slider">Kedalaman maksimum</label>
+      <input type="range" id="ked-slider" min="1" max="15" step="1" value="3" aria-valuetext="3" style="flex:1;min-width:130px;accent-color:var(--aksen-1)">
+      <button type="button" class="btn" id="ked-seed">Seed baru</button>
+      <button type="button" class="btn" id="ked-seed-awal">Seed awal (42)</button>
+    </div>
+    <p class="fig-ket" id="ked-ket">Pembagian data: seed 42, 499 latih, 215 uji.</p>
+  </div>
+
+  <details class="temuan"><summary>Tebak dulu: jika kedalaman maksimum terus dinaikkan, apakah galat uji terus menurun?</summary>
+    <p>Tidak. Galat latih tidak naik terhadap kedalaman karena setiap <i>split</i> tidak menambah salah prediksi pada data latih. Galat uji umumnya turun sampai kedalaman tertentu, kemudian naik atau mendatar karena <i>decision tree</i> mulai mengikuti variasi acak data latih. Kedalaman yang dipilih sebaiknya ditentukan oleh data uji atau validasi silang, bukan oleh galat latih. Bagian 2 membahas <i>pruning</i> sebagai cara lain mengendalikan kompleksitas.</p></details>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">08 · Ringkasan</div>
+  <h2>Inti materi</h2>
+  <ul>
+    <li><i>Decision tree</i> memprediksi dengan rangkaian pertanyaan ya atau tidak berbentuk \(x_j \le t\). Setiap <i>leaf node</i> memprediksi kelas mayoritasnya.</li>
+    <li><i>Split</i> dipilih dengan memaksimumkan pengurangan <i>impurity</i> (Gini atau entropi) pada setiap <i>node</i> secara <i>greedy</i>. Pada <i>root node</i> data Titanic, jenis kelamin memberi pengurangan terbesar.</li>
+    <li>Algoritma <i>recursive binary splitting</i> berhenti menurut kriteria berhenti. Tanpa batas kedalaman, galat latih dapat mencapai nilai terendahnya.</li>
+    <li>Kedalaman mengatur keseimbangan bias dan varians. Galat uji, bukan galat latih, dipakai untuk memilih kompleksitas.</li>
+  </ul>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">09 · Referensi</div>
+  <h2>Bacaan lanjutan</h2>
+  <ul class="sumber">
+    <li>Breiman, L., Friedman, J. H., Olshen, R. A., &amp; Stone, C. J. (1984). <i>Classification and Regression Trees</i>. Wadsworth.</li>
+    <li>Hastie, T., Tibshirani, R., &amp; Friedman, J. (2009). <i>The Elements of Statistical Learning</i> (2nd ed.). Springer. Bab 9.2.</li>
+    <li>James, G., Witten, D., Hastie, T., &amp; Tibshirani, R. (2021). <i>An Introduction to Statistical Learning</i> (2nd ed.). Springer. Bab 8.1.</li>
+  </ul>
+</section>
+
+<nav class="nav-bawah" aria-label="Navigasi materi">
+  <a class="kartu-nav" href="../../../index.html#arsip">
+    <span>Arsip</span>
+    <b>Kembali ke daftar materi</b>
+  </a>
+  <span></span>
+</nav>
+
+</main>
+<script src="../../../kit/vendor/katex/katex.min.js"></script>
+<script src="../../../kit/vendor/katex/auto-render.min.js"></script>
+<script src="../../../kit/kit.js"></script>
+<script src="../../../kit/daftar-isi.js"></script>
+</body>
+</html>

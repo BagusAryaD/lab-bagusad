@@ -10,6 +10,11 @@
       "slug": "struktur-data",
       "nama": "Struktur Data",
       "ringkas": "Struktur data empiris menurut dimensi unit dan waktu, serta konsekuensinya bagi pemodelan."
+    },
+    {
+      "slug": "machine-learning",
+      "nama": "Machine Learning",
+      "ringkas": "Metode prediksi yang dibangun dari data, dari pohon keputusan sampai pengendalian kompleksitasnya."
     }
   ],
   "materi": [
@@ -82,6 +87,29 @@
       ],
       "kit": "0.4",
       "status": "selesai",
+      "tanggal": "2026-11-21"
+    },
+    {
+      "slug": "pengantar-decision-tree",
+      "topik": "machine-learning",
+      "judul": "Decision Tree",
+      "bagian": 1,
+      "subjudul": "Klasifikasi dengan decision tree",
+      "ringkas": "Membangun decision tree untuk memprediksi keselamatan penumpang Titanic, dari cara algoritma memilih pertanyaan sampai pengaruh kedalaman terhadap overfitting.",
+      "berkas": "materi/machine-learning/pengantar-decision-tree/index.html",
+      "tujuan": [
+        "Menjelaskan cara decision tree memprediksi dan cara algoritma memilih split",
+        "Menghitung impurity Gini dan entropi, serta pengurangannya pada sebuah split",
+        "Menjalankan algoritma recursive binary splitting secara konsep dan mengimplementasikannya dengan scikit-learn",
+        "Menjelaskan hubungan kedalaman decision tree dengan overfitting"
+      ],
+      "sumber": [
+        "Breiman, Friedman, Olshen, & Stone (1984), Classification and Regression Trees",
+        "Hastie, Tibshirani, & Friedman (2009), The Elements of Statistical Learning",
+        "James, Witten, Hastie, & Tibshirani (2021), An Introduction to Statistical Learning"
+      ],
+      "kit": "0.4",
+      "status": "draft",
       "tanggal": "2026-11-21"
     }
   ]
