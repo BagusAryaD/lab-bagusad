@@ -1,12 +1,14 @@
 /* widgets/pemilihan.js: Figur 2, pemilihan pertanyaan terbaik pada sampel 20.
-   Data SAMPEL_20, urutan titik: tidak selamat dahulu lalu selamat, masing-masing
-   urut baris_asal. 11 keadaan (0-10), dua canvas, kartu kandidat DOM. */
+   Panggung dua pita: pita atas untuk kelompok yang sedang diproses, pita bawah
+   untuk kelompok yang menunggu dan hasil akhir. Setiap langkah (0-10) dianimasikan
+   dalam tiga fase: uji (sorot kandidat), pilih (pemenang), bagi (garis lalu titik).
+   Kartu kandidat dan pohon ringkas memakai DOM + kanvas terpisah. */
 (() => {
   const { warna, kanvas } = Kit;
   const $ = s => document.querySelector(s);
   const FONT = '"IBM Plex Sans", sans-serif';
-  const fmt = (v, d) => v.toLocaleString('id-ID', { minimumFractionDigits: d, maximumFractionDigits: d });
-  const kertas = () => getComputedStyle(document.body).getPropertyValue('--kertas-2').trim() || '#F0EDE7';
+  const kertas = () => getComputedStyle(document.body).getPropertyValue('--kertas').trim() || '#F7F4EF';
+  const kertas2 = () => getComputedStyle(document.body).getPropertyValue('--kertas-2').trim() || '#F0EDE7';
 
   const SEMUA = (window.SAMPEL_20 || [])
     .map(r => ({ asal: r[0], f: r[1], kelas: r[2], usia: r[3], y: r[4] }))
@@ -18,22 +20,22 @@
     perem: () => SEMUA.filter(p => p.f === 1),
   };
 
-  const URUT = (orang) => [...orang].sort((a, b) => {
+  const URUT = orang => [...orang].sort((a, b) => {
     if (a.y !== b.y) return b.y - a.y;
     return a.asal - b.asal;
   });
 
   const KAND = {
     gender: { t: 'apakah laki-laki?', uji: p => p.f === 0, yaT: 'laki-laki', tiT: 'perempuan' },
-    kelas:  { t: 'apakah kelas 1 atau 2?', uji: p => p.kelas <= 2.5, yaT: 'kelas 1 atau 2', tiT: 'kelas 3' },
+    kelas: { t: 'apakah kelas 1 atau 2?', uji: p => p.kelas <= 2.5, yaT: 'kelas 1 atau 2', tiT: 'kelas 3' },
     usia35: { t: 'apakah usia ≤ 35,5 tahun?', uji: p => p.usia <= 35.5, yaT: 'usia ≤ 35,5', tiT: 'usia > 35,5' },
-    usia9:  { t: 'apakah usia ≤ 9,3 tahun?', uji: p => p.usia <= 9.335, yaT: 'usia ≤ 9,3', tiT: 'usia > 9,3' },
+    usia9: { t: 'apakah usia ≤ 9,3 tahun?', uji: p => p.usia <= 9.335, yaT: 'usia ≤ 9,3', tiT: 'usia > 9,3' },
     usia26: { t: 'apakah usia ≤ 26,5 tahun?', uji: p => p.usia <= 26.5, yaT: 'usia ≤ 26,5', tiT: 'usia > 26,5' },
   };
 
   const RONDE = [
     { grup: 'semua', kandidat: ['gender', 'kelas', 'usia35'], pemenang: 0 },
-    { grup: 'laki',  kandidat: ['kelas', 'usia9'], pemenang: 1 },
+    { grup: 'laki', kandidat: ['kelas', 'usia9'], pemenang: 1 },
     { grup: 'perem', kandidat: ['kelas', 'usia26'], pemenang: 0 },
   ];
 
@@ -46,7 +48,8 @@
       return { n: g.length, s, t: g.length - s };
     };
     const ay = hitung(ya), at = hitung(tidak);
-    return { ya: URUT(ya), tidak: URUT(tidak), ay, at, salah: ay.t + at.s };
+    return { ya: URUT(ya), tidak: URUT(tidak), ay, at,
+      salah: Math.min(ay.t, ay.s) + Math.min(at.t, at.s) };
   };
 
   const KETERANGAN = [
@@ -63,329 +66,730 @@
     'Pertanyaan kelas dipilih karena salah prediksinya 0. Semua kelompok akhir hanya berisi satu kelas, sehingga 20 dari 20 penumpang diprediksi benar. Pada 714 penumpang, kelompok akhir masih berisi dua kelas (Figur 5).',
   ];
 
-  /* ---- layout kotak pada panggung ---- */
-  const KP = 5; const DT = 18; const JARAK = 26;
-  const KOLOM = 5;
+  /* ---- keadaan tiap langkah: kelompok aktif, hasil pembagian, kelompok selesai ---- */
+  const hasilBagi = (grup, id) => bagi(GRUP[grup](), KAND[id].uji);
+  const daunLaki = () => bagi(GRUP.laki(), KAND.usia9.uji);
+  const daunPerem = () => bagi(GRUP.perem(), KAND.kelas.uji);
 
-  function tataKotak(judul, orang, cx, y, skala, redup) {
-    const baris = Math.max(1, Math.ceil(orang.length / KOLOM));
-    const gw = (KOLOM - 1) * JARAK + DT;
-    const gh = (baris - 1) * JARAK + DT;
-    const w = (gw + 28) * skala;
-    const h = (30 + gh + 30) * skala;
-    const x = cx - w / 2;
-    const titik = orang.map((p, i) => {
+  function keadaan(s) {
+    if (s === 0) {
+      return { fase: 'awal', aktif: { grup: 'semua', orang: SEMUA, judul: 'Semua penumpang' },
+        split: null, selesai: [], garis: [] };
+    }
+    if (s <= 3) {
+      const id = RONDE[0].kandidat[s - 1];
+      const b = hasilBagi('semua', id);
+      return { fase: 'uji', aktif: { grup: 'semua', orang: SEMUA, judul: 'Semua penumpang' },
+        id, kandidat: RONDE[0].kandidat, indeks: s - 1, split: b, selesai: [], garis: [] };
+    }
+    if (s === 4) {
+      const b = hasilBagi('semua', 'gender');
+      return { fase: 'pilih', aktif: { grup: 'semua', orang: SEMUA, judul: 'Semua penumpang' },
+        id: 'gender', kandidat: RONDE[0].kandidat, indeks: 0, split: b, selesai: [], garis: ['root'] };
+    }
+    if (s === 5 || s === 6) {
+      const id = RONDE[1].kandidat[s - 5];
+      const b = hasilBagi('laki', id);
+      return { fase: 'uji', aktif: { grup: 'laki', orang: GRUP.laki(), judul: 'Laki-laki' },
+        id, kandidat: RONDE[1].kandidat, indeks: s - 5, split: b,
+        selesai: [{ judul: 'Perempuan', orang: GRUP.perem(), catatan: '10 menunggu' }],
+        garis: ['root', 'perem'] };
+    }
+    if (s === 7) {
+      const b = hasilBagi('laki', 'usia9');
+      return { fase: 'pilih', aktif: { grup: 'laki', orang: GRUP.laki(), judul: 'Laki-laki' },
+        id: 'usia9', kandidat: RONDE[1].kandidat, indeks: 1, split: b,
+        selesai: [{ judul: 'Perempuan', orang: GRUP.perem(), catatan: '10 menunggu' }],
+        garis: ['root', 'perem', 'laki'] };
+    }
+    if (s === 8 || s === 9) {
+      const id = RONDE[2].kandidat[s - 8];
+      const b = hasilBagi('perem', id);
+      const dl = daunLaki();
+      return { fase: 'uji', aktif: { grup: 'perem', orang: GRUP.perem(), judul: 'Perempuan' },
+        id, kandidat: RONDE[2].kandidat, indeks: s - 8, split: b,
+        selesai: [
+          { judul: 'Selamat', orang: dl.ya, catatan: '1 penumpang', akhir: true },
+          { judul: 'Tidak selamat', orang: dl.tidak, catatan: '9 penumpang', akhir: true },
+        ],
+        garis: ['root', 'perem', 'laki'] };
+    }
+    const dl = daunLaki(), dp = daunPerem();
+    return { fase: 'pilih', aktif: { grup: 'perem', orang: GRUP.perem(), judul: 'Perempuan' },
+      id: 'kelas', kandidat: RONDE[2].kandidat, indeks: 0, split: dp,
+      selesai: [
+        { judul: 'Selamat', orang: dl.ya, catatan: '1, selesai' },
+        { judul: 'Tidak selamat', orang: dl.tidak, catatan: '9, selesai' },
+      ],
+      garis: ['root', 'perem', 'laki'],
+      akhir: [{ judul: 'Selamat', orang: dp.ya, catatan: '8' }, { judul: 'Tidak selamat', orang: dp.tidak, catatan: '2' }] };
+  }
+
+  /* ---- geometri panggung 760 x 490 ---- */
+  const PW = 760, PH = 490;
+  const DT = 18, JARAK = 26, KOLOM = 5;
+  const PITA_ATAS = { y: 44, tinggi: 190 };
+  const PITA_BAWAH = { y: 272, tinggi: 200 };
+  const KEPALA_PITA = 24;         // ruang label di dalam pita
+  const TENGAH = PW / 2;
+
+  /* Titik disusun memusat pada pusatKotak. */
+  function grid(orang, pusatKotak, atas, skala) {
+    return orang.map((p, i) => {
       const col = i % KOLOM, row = (i / KOLOM) | 0;
       return {
         p,
-        x: x + (w - gw * skala) / 2 + col * JARAK * skala + DT / 2 * skala,
-        y: y + 30 * skala + row * JARAK * skala + DT / 2 * skala,
+        x: pusatKotak + (col - (KOLOM - 1) / 2) * JARAK * skala,
+        y: atas + row * JARAK * skala + DT / 2 * skala,
+        s: skala,
       };
     });
-    const barisText = orang.filter(p => p.y).length;
-    const tidakSelesai = orang.length - barisText;
-    return { judul, orang, x, y, w, h, skala, redup, titik, barisText, tidakSelesai };
   }
 
-  function kotak(s) {
-    if (s === 0) {
-      return [tataKotak('Semua penumpang (20)', SEMUA, 280, 52, 1, false)];
+  function tinggiIsi(n, skala) {
+    const baris = Math.max(1, Math.ceil(n / KOLOM));
+    return ((baris - 1) * JARAK + DT) * skala;
+  }
+
+  /* Kotak pita bawah: judul, kisi titik, catatan di dalam kotak.
+     Semua kotak rata atas supaya deret terlihat sejajar. */
+  function kotakBawah(orang, skala, cx) {
+    const isi = tinggiIsi(orang.length, skala);
+    const w = Math.max(104, ((KOLOM - 1) * JARAK + DT) * skala + 24);
+    const h = 22 + isi + 6 + 13;
+    const x = cx - w / 2;
+    const y = PITA_BAWAH.y + KEPALA_PITA + 22;
+    const titik = grid(orang, cx, y + 22, skala);
+    return { orang, x, y, w, h, skala, titik };
+  }
+
+  /* Kotak pita atas: judul, kisi titik, batang, angka. */
+  function kotakAtas(orang, skala, cx) {
+    const isi = tinggiIsi(orang.length, skala);
+    const w = Math.max(360, ((KOLOM - 1) * JARAK + DT) * skala + 60);
+    const h = 30 + isi + 40;
+    const x = cx - w / 2;
+    const y = PITA_ATAS.y + KEPALA_PITA + (PITA_ATAS.tinggi - KEPALA_PITA - h) / 2;
+    const atasTitik = y + 30;
+    const titik = grid(orang, cx, atasTitik, skala);
+    const s = orang.filter(p => p.y).length;
+    return { orang, x, y, w, h, skala, titik, selamat: s, tidak: orang.length - s,
+      barY: atasTitik + isi + 12, barW: Math.min(w - 60, ((KOLOM - 1) * JARAK + DT) * skala) };
+  }
+
+  /* Kotak bawah disusun rata: lebar maksimum dibatasi agar deret muat. */
+  function deret(kotak, xAwal, xAkhir, sela) {
+    if (!kotak.length) return kotak;
+    kotak.forEach(b => { b.w = kotakBawah(b.orang, b.skala, 0).w; });
+    const total = kotak.reduce((t, b) => t + b.w, 0) + sela * (kotak.length - 1);
+    const longgar = xAkhir - xAwal;
+    if (total > longgar) {
+      const faktor = longgar / total;
+      kotak.forEach(b => { b.skala *= faktor; });
+      kotak.forEach(b => { b.w = kotakBawah(b.orang, b.skala, 0).w; });
     }
-    if (s <= 3) {
-      const k = RONDE[0].kandidat[s - 1];
-      const b = bagi(SEMUA, KAND[k].uji);
-      const yaJudul = s === 1 ? 'Ya: laki-laki (10)' : `Ya: ${KAND[k].yaT} (${b.ay.n})`;
-      const tiJudul = s === 1 ? 'Tidak: perempuan (10)' : `Tidak: ${KAND[k].tiT} (${b.at.n})`;
-      return [
-        tataKotak(yaJudul, b.ya, 165, s === 2 ? 54 : 50, 1, false),
-        tataKotak(tiJudul, b.tidak, 415, s === 2 ? 54 : 50, 1, false),
+    const lebar = kotak.reduce((t, b) => t + b.w, 0) + sela * (kotak.length - 1);
+    let x = xAwal + (longgar - lebar) / 2;
+    kotak.forEach(b => {
+      Object.assign(b, kotakBawah(b.orang, b.skala, x + b.w / 2));
+      x += b.w + sela;
+    });
+    return kotak;
+  }
+
+  /* Tata letak lengkap satu langkah. */
+  function tataLetak(s) {
+    const k = keadaan(s);
+    const tahap = s;
+    const atas = kotakAtas(k.aktif.orang, 1, 205);
+    const xAwal = 40, xAkhir = PW - 16;
+
+    let bawah = [];
+    if (tahap === 10) {
+      bawah = [
+        { jenis: 'akhir', judul: 'Selamat', orang: daunLaki().ya, catatan: '1 penumpang', skala: 0.8 },
+        { jenis: 'akhir', judul: 'Tidak selamat', orang: daunLaki().tidak, catatan: '9 penumpang', skala: 0.8 },
+        { jenis: 'akhir', judul: 'Selamat', orang: daunPerem().ya, catatan: '8 penumpang', skala: 0.8 },
+        { jenis: 'akhir', judul: 'Tidak selamat', orang: daunPerem().tidak, catatan: '2 penumpang', skala: 0.8 },
       ];
-    }
-    const dim = (cx, y, orang) => tataKotak(orang.length === 10 ? 'Laki-laki (10)' : 'Perempuan (10)', orang, cx, y, 0.6, true);
-    if (s === 4) {
-      return [tataKotak('Laki-laki (10)', GRUP.laki(), 165, 46, 1.08, false), dim(280, 228, GRUP.perem())];
-    }
-    if (s === 5 || s === 6) {
-      const k = KAND[s === 5 ? 'kelas' : 'usia9'];
-      const b = bagi(GRUP.laki(), k.uji);
-      return [
-        tataKotak(`Ya: ${k.yaT} (${b.ay.n})`, b.ya, 165, 48, 1, false),
-        tataKotak(`Tidak: ${k.tiT} (${b.at.n})`, b.tidak, 395, 48, 1, false),
-        dim(280, 230, GRUP.perem()),
+    } else if (k.split) {
+      bawah = [
+        { jenis: 'hasil', judul: 'Ya: ' + KAND[k.id].yaT, orang: k.split.ya,
+          catatan: k.split.ay.n + ' penumpang', skala: 0.92 },
+        { jenis: 'hasil', judul: 'Tidak: ' + KAND[k.id].tiT, orang: k.split.tidak,
+          catatan: k.split.at.n + ' penumpang', skala: 0.8 },
       ];
+      k.selesai.forEach(g => bawah.push({ jenis: g.akhir ? 'akhir' : 'selesai', judul: g.judul,
+        orang: g.orang, catatan: g.catatan, skala: 0.72 }));
     }
-    if (s === 7) {
-      const usia = GRUP.laki().filter(p => p.usia <= 9.335);
-      const lebih = GRUP.laki().filter(p => p.usia > 9.335);
-      return [
-        tataKotak('Perempuan (10)', GRUP.perem(), 280, 46, 1.08, false),
-        tataKotak('Selamat (1)', usia, 140, 228, 0.6, true),
-        tataKotak('Tidak selamat (9)', lebih, 420, 228, 0.6, true),
-      ];
-    }
-    if (s === 8 || s === 9) {
-      const k = KAND[s === 8 ? 'kelas' : 'usia26'];
-      const b = bagi(GRUP.perem(), k.uji);
-      return [
-        tataKotak(`Ya: ${k.yaT} (${b.ay.n})`, b.ya, 165, 48, 1, false),
-        tataKotak(`Tidak: ${k.tiT} (${b.at.n})`, b.tidak, 395, 48, 1, false),
-        tataKotak('Selamat (1)', GRUP.laki().filter(p => p.usia <= 9.335), 140, 230, 0.6, true),
-        tataKotak('Tidak selamat (9)', GRUP.laki().filter(p => p.usia > 9.335), 420, 230, 0.6, true),
-      ];
-    }
-    const satu = GRUP.laki().filter(p => p.usia <= 9.335);
-    const dua = GRUP.laki().filter(p => p.usia > 9.335);
-    const tiga = GRUP.perem().filter(p => p.kelas <= 2.5);
-    const empat = GRUP.perem().filter(p => p.kelas > 2.5);
-    return [
-      tataKotak('Selamat (1)', satu, 150, 36, 0.8, false),
-      tataKotak('Tidak selamat (9)', dua, 410, 36, 0.8, false),
-      tataKotak('Selamat (8)', tiga, 150, 166, 0.8, false),
-      tataKotak('Tidak selamat (2)', empat, 410, 166, 0.8, false),
-    ];
+    bawah = deret(bawah, xAwal, xAkhir, 16);
+    return { k, atas, bawah };
   }
 
   /* ---- state ---- */
   let langkah = 0, putar = false, sibuk = false;
-  let titik = SEMUA.map(p => ({ p, x: 0, y: 0, tx: 0, ty: 0 }));
+  let fase = 0;                       // 0 diam, 1 uji, 2 pilih, 3 bagi, 4 selesai
+  let sorot = -1;                     // indeks kandidat yang sedang disorot
+  let progresGaris = 0;               // 0..1 panjang garis penghubung
+  const titik = SEMUA.map(p => ({ p, x: 0, y: 0, s: 1, tx: 0, ty: 0, ts: 1 }));
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const ease = k => k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+  let batal = false;
+  let selesaikanSekarang = null;
+
+  const ease = x => x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
   const tunda = ms => new Promise(r => setTimeout(r, ms));
 
-  function posisiTarget(s) {
+  /* Kumpulkan posisi target semua titik dari tata letak tujuan. */
+  function posisiTarget(tl) {
     const map = new Map();
-    kotak(s).forEach(b => b.titik.forEach(t => map.set(t.p.asal, { x: t.x, y: t.y })));
-    titik.forEach(t => { const g = map.get(t.p.asal); t.tx = g.x; t.ty = g.y; });
+    tl.atas.titik.forEach(t => map.set(t.p.asal, { x: t.x, y: t.y, s: tl.atas.skala }));
+    tl.bawah.forEach(b => b.titik.forEach(t => map.set(t.p.asal, { x: t.x, y: t.y, s: b.skala })));
+    for (const t of titik) {
+      const g = map.get(t.p.asal);
+      if (g) { t.tx = g.x; t.ty = g.y; t.ts = g.s; }
+    }
   }
 
-  async function animasiTitik(dur = 700, jeda = 15) {
-    if (reduce) { titik.forEach(t => { t.x = t.tx; t.y = t.ty; }); gambar(); return; }
-    const awal = titik.map(t => ({ x: t.x, y: t.y }));
-    const total = dur + jeda * (titik.length - 1);
-    await new Promise(res => {
+  function loncatKe(tl) {
+    posisiTarget(tl);
+    for (const t of titik) { t.x = t.tx; t.y = t.ty; t.s = t.ts; }
+  }
+
+  /* Animasi umum: panggil langkah(t) dengan t 0..1, bisa dipercepat. */
+  function animasi(dur, langkahFn) {
+    if (reduce) { langkahFn(1); return Promise.resolve(); }
+    return new Promise(res => {
+      selesaikanSekarang = () => { selesaikanSekarang = null; langkahFn(1); res(); };
       const t0 = performance.now();
-      const step = now => {
-        const el = now - t0;
-        titik.forEach((t, i) => {
-          const k = Math.min(1, Math.max(0, (el - i * jeda) / dur));
-          const e = ease(k);
-          t.x = awal[i].x + (t.tx - awal[i].x) * e;
-          t.y = awal[i].y + (t.ty - awal[i].y) * e;
-        });
-        gambar();
-        if (el < total) requestAnimationFrame(step); else res();
+      const tick = now => {
+        if (batal) { selesaikanSekarang = null; res(); return; }
+        const t = Math.min(1, (now - t0) / dur);
+        langkahFn(ease(t));
+        if (t < 1) requestAnimationFrame(tick);
+        else { selesaikanSekarang = null; res(); }
       };
-      requestAnimationFrame(step);
+      requestAnimationFrame(tick);
     });
   }
 
-  async function keLangkah(s) {
-    sibuk = true;
-    try {
-      langkah = s;
-      posisiTarget(s);
+  /* Titik meluncur ke target dengan jeda berurutan. */
+  function geserTitik(dur = 620, jeda = 22) {
+    const asal = titik.map(t => ({ x: t.x, y: t.y, s: t.s }));
+    const total = dur + jeda * (titik.length - 1);
+    const t0 = performance.now();
+    return animasi(total, () => {
+      const el = (reduce ? total : performance.now() - t0);
+      titik.forEach((t, i) => {
+        const q = Math.min(1, Math.max(0, (el - i * jeda) / dur));
+        const e = ease(q);
+        t.x = asal[i].x + (t.tx - asal[i].x) * e;
+        t.y = asal[i].y + (t.ty - asal[i].y) * e;
+        t.s = asal[i].s + (t.ts - asal[i].s) * e;
+      });
+      gambar();
+    });
+  }
+
+  /* ---- urutan animasi satu langkah ---- */
+  const JEDA_UJI = 260;
+
+  async function jalankanLangkah(s, dariAwal) {
+    batal = false;
+    const k = keadaan(s);
+    langkah = s;
+
+    if (reduce || dariAwal) {
+      fase = 4; sorot = -1; progresGaris = 1;
+      loncatKe(tataLetak(s));
       perbarui();
-      await animasiTitik();
-    } finally { sibuk = false; }
+      gambar();
+      return;
+    }
+
+    /* 1. fase uji: sorot tiap kandidat satu per satu */
+    if (k.fase === 'uji') {
+      fase = 1;
+      progresGaris = 0;
+      const tl = tataLetak(s);
+      posisiTarget(tl);
+      perbarui();
+      gambar();
+      for (let i = 0; i <= k.indeks; i++) {
+        if (batal) break;
+        sorot = i;
+        perbarui();
+        gambar();
+        await tunda(JEDA_UJI);
+      }
+      sorot = k.indeks;
+      perbarui();
+      gambar();
+      await tunda(140);
+    }
+
+    /* 2. fase pilih: pemenang ditandai */
+    fase = 2;
+    sorot = k.fase === 'uji' ? k.indeks : 0;
     perbarui();
+    gambar();
+    await tunda(k.fase === 'uji' ? 240 : 180);
+    if (batal) { fase = 4; sorot = -1; progresGaris = 1; perbarui(); gambar(); return; }
+
+    /* 3. fase bagi: garis tumbuh, lalu titik meluncur */
+    fase = 3;
+    progresGaris = 0;
+    perbarui();
+    posisiTarget(tataLetak(s));
+    gambar();
+    await animasi(260, e => { progresGaris = e; gambar(); });
+    if (batal) { fase = 4; sorot = -1; progresGaris = 1; perbarui(); gambar(); return; }
+    progresGaris = 1;
+    gambar();
+    await geserTitik();
+    fase = 4; sorot = -1;
+    perbarui();
+    gambar();
+  }
+
+  async function keLangkah(s, dariAwal = false) {
+    if (selesaikanSekarang && !dariAwal) { selesaikanSekarang(); }
+    sibuk = true;
+    perbarui();
+    try {
+      await jalankanLangkah(s, dariAwal);
+    } finally {
+      sibuk = false;
+      perbarui();
+    }
   }
 
   async function mainkan() {
-    if (putar) { putar = false; perbarui(); return; }
-    putar = true; perbarui();
-    if (langkah >= 10) { await keLangkah(0); }
-    btnPutar.textContent = 'Jeda';
+    if (putar) {
+      putar = false;
+      batal = true;
+      if (selesaikanSekarang) selesaikanSekarang();
+      perbarui();
+      return;
+    }
+    putar = true;
+    perbarui();
+    if (langkah >= 10) await keLangkah(0, true);
     while (putar && langkah < 10) {
       const t0 = performance.now();
       await keLangkah(langkah + 1);
-      const sisa = 2200 - (performance.now() - t0);
-      await tunda(Math.max(0, sisa));
+      if (!putar) break;
+      await tunda(Math.max(0, 2400 - (performance.now() - t0)));
     }
-    putar = false; perbarui();
+    putar = false;
+    perbarui();
   }
 
-  const btnPutar = $('#pemilihan-putar'), btnMaju = $('#pemilihan-maju'), btnMundur = $('#pemilihan-mundur'), btnUlang = $('#pemilihan-ulang');
+  const btnPutar = $('#pemilihan-putar'), btnMaju = $('#pemilihan-maju');
+  const btnMundur = $('#pemilihan-mundur'), btnUlang = $('#pemilihan-ulang');
   const lblLangkah = $('#pemilihan-langkah'), iProgres = $('#pemilihan-progres-i');
 
+  function statusKandidat(i) {
+    const m = metaLangkah();
+    if (m.uji !== null) {
+      if (i === m.uji) return 'diuji';
+      if (i < m.uji) return 'teruji';
+      return 'belum';
+    }
+    if (m.selesai) return i === m.pemenang ? 'dipilih' : 'redup';
+    return 'belum';
+  }
 
+  function metaLangkah() {
+    if (langkah <= 4) return { ronde: 0, uji: langkah >= 1 && langkah <= 3 ? langkah - 1 : null, selesai: langkah === 4, pemenang: 0 };
+    if (langkah <= 7) return { ronde: 1, uji: langkah >= 5 && langkah <= 6 ? langkah - 5 : null, selesai: langkah === 7, pemenang: 1 };
+    return { ronde: 2, uji: langkah >= 8 && langkah <= 9 ? langkah - 8 : null, selesai: langkah === 10, pemenang: 0 };
+  }
 
   function renderKandidat() {
     const m = metaLangkah();
     const r = RONDE[m.ronde];
     const orang = GRUP[r.grup]();
     const wadah = $('#pemilihan-kandidat');
-    let html = '';
-    if (m.ronde > 0) {
-      html += `<p class="catatan-kecil">Jenis kelamin tidak dapat membagi: semua penumpang di kelompok ini ${r.grup === 'laki' ? 'laki-laki' : 'perempuan'}.</p>`;
+    if (!wadah) return;
+    const catatan = wadah.querySelector('.catatan-kecil');
+    if (catatan) {
+      catatan.textContent = m.ronde === 0 ? ''
+        : `Jenis kelamin tidak dapat membagi kelompok ini: semuanya ${r.grup === 'laki' ? 'laki-laki' : 'perempuan'}.`;
+      catatan.hidden = m.ronde === 0;
     }
+    const kartu = wadah.querySelectorAll('.kartu');
     r.kandidat.forEach((id, i) => {
+      const el = kartu[i];
+      if (!el) return;
       const k = KAND[id];
-      const b = bagi(orang, KAND[id].uji);
-      let status = 'belum';
-      if (m.uji !== null) {
-        if (i < m.uji) status = 'teruji';
-        else if (i === m.uji) status = 'diuji';
-        else status = 'redup';
-      } else if (m.selesai) {
-        status = i === r.pemenang ? 'dipilih' : 'redup';
+      const b = bagi(orang, k.uji);
+      const st = statusKandidat(i);
+      el.className = 'kartu ' + st;
+      el.classList.toggle('menyala', fase === 1 && sorot === i);
+      el.querySelector('.k-judul').textContent = k.t;
+      const ang = el.querySelector('.k-angka');
+      ang.hidden = st === 'belum';
+      if (st !== 'belum') {
+        ang.querySelector('[data-isi="ya"]').textContent = `Ya ${b.ay.n}`;
+        ang.querySelector('[data-isi="tidak"]').textContent = `Tidak ${b.at.n}`;
+        ang.querySelector('[data-isi="salah"]').textContent = `salah ${b.salah}`;
       }
-      const cls = status === 'belum' ? 'belum' : (status === 'diuji' ? 'diuji' : (status === 'dipilih' ? 'dipilih' : 'redup'));
-      let isi = `<b>${k.t}</b>`;
-      if (status !== 'belum') {
-        isi += `<span>Ya: ${b.ay.n} (${b.ay.t} tidak selamat, ${b.ay.s} selamat)</span>`;
-        isi += `<span>Tidak: ${b.at.n} (${b.at.t} tidak selamat, ${b.at.s} selamat)</span>`;
-        isi += `<span>Salah prediksi: ${b.ay.t} + ${b.at.t} = <b>${b.salah}</b></span>`;
-      }
-      if (status === 'dipilih') isi += '<span class="tanda">✓ dipilih</span>';
-      html += `<div class="kartu ${cls}">${isi}</div>`;
+      el.querySelector('.k-tanda').hidden = st !== 'dipilih';
     });
-    wadah.innerHTML = html;
-  }
-
-  function metaLangkah() {
-    if (langkah <= 4) return { ronde: 0, uji: langkah >= 1 && langkah <= 3 ? langkah - 1 : null, selesai: langkah === 4 };
-    if (langkah <= 7) return { ronde: 1, uji: langkah >= 5 && langkah <= 6 ? langkah - 5 : null, selesai: langkah === 7 };
-    return { ronde: 2, uji: langkah >= 8 && langkah <= 9 ? langkah - 8 : null, selesai: langkah === 10 };
+    for (let i = r.kandidat.length; i < kartu.length; i++) kartu[i].hidden = true;
+    for (let i = 0; i < r.kandidat.length; i++) kartu[i].hidden = false;
   }
 
   function perbarui() {
-    const m = metaLangkah();
-    $('#pemilihan-ket').textContent = KETERANGAN[langkah];
-    lblLangkah.textContent = `Langkah ${langkah} dari 10`;
+    const ket = $('#pemilihan-ket');
+    if (ket) ket.textContent = KETERANGAN[langkah];
+    if (lblLangkah) lblLangkah.textContent = `Langkah ${langkah} dari 10`;
     if (iProgres) iProgres.style.width = `${langkah / 10 * 100}%`;
-    btnMundur.disabled = langkah === 0 || sibuk;
-    btnMaju.disabled = langkah === 10 || sibuk;
-    btnUlang.disabled = sibuk;
-    btnPutar.textContent = putar ? 'Jeda' : (langkah >= 10 ? 'Putar ulang' : 'Putar');
+    if (btnMundur) btnMundur.disabled = langkah === 0 || sibuk;
+    if (btnMaju) btnMaju.disabled = langkah === 10 || sibuk;
+    if (btnUlang) btnUlang.disabled = sibuk;
+    if (btnPutar) btnPutar.textContent = putar ? 'Jeda' : (langkah >= 10 ? 'Putar ulang' : 'Putar');
     renderKandidat();
   }
 
-  btnPutar?.addEventListener('click', () => { if (!sibuk) mainkan(); });
-  btnMaju?.addEventListener('click', () => { if (!sibuk) { putar = false; keLangkah(langkah + 1); } });
-  btnMundur?.addEventListener('click', () => { if (!sibuk && langkah > 0) { putar = false; keLangkah(langkah - 1); } });
-  btnUlang?.addEventListener('click', () => { if (!sibuk) { putar = false; keLangkah(0); } });
+  btnPutar?.addEventListener('click', () => mainkan());
+  btnMaju?.addEventListener('click', () => {
+    if (sibuk) { if (selesaikanSekarang) selesaikanSekarang(); return; }
+    if (langkah >= 10) return;
+    putar = false;
+    keLangkah(langkah + 1);
+  });
+  btnMundur?.addEventListener('click', () => {
+    if (langkah <= 0) return;
+    putar = false;
+    batal = true;
+    if (selesaikanSekarang) selesaikanSekarang();
+    keLangkah(langkah - 1, true);
+  });
+  btnUlang?.addEventListener('click', () => {
+    putar = false;
+    batal = true;
+    if (selesaikanSekarang) selesaikanSekarang();
+    keLangkah(0, true);
+  });
 
-  /* ---- gambar ---- */
-  function drawTitik(c, t, skala) {
-    const r = DT / 2 * skala;
+  /* ---- menggambar panggung ---- */
+  function bulat(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.lineTo(x + w - r, y); c.arcTo(x + w, y, x + w, y + r, r);
+    c.lineTo(x + w, y + h - r); c.arcTo(x + w, y + h, x + w - r, y + h, r);
+    c.lineTo(x + r, y + h); c.arcTo(x, y + h, x, y + h - r, r);
+    c.lineTo(x, y + r); c.arcTo(x, y, x + r, y, r);
+    c.closePath();
+  }
+
+  function gambarTitik(c, t) {
+    const r = DT / 2 * t.s;
     c.beginPath();
     if (t.p.y) {
       c.arc(t.x, t.y, r, 0, Math.PI * 2);
       c.fill();
     } else {
-      c.moveTo(t.x, t.y - r); c.lineTo(t.x + r, t.y); c.lineTo(t.x, t.y + r); c.lineTo(t.x - r, t.y);
-      c.fill();
+      c.moveTo(t.x, t.y - r); c.lineTo(t.x + r, t.y);
+      c.lineTo(t.x, t.y + r); c.lineTo(t.x - r, t.y);
+      c.closePath(); c.fill();
     }
   }
 
-  function drawKotak(c, b) {
-    const sk = b.skala;
-    const r = 10 * sk;
-    const w = b.w, h = b.h;
+  function gambarPita(c, C, pita, judul) {
     c.save();
-    c.translate(b.x, b.y);
-    c.fillStyle = kertas();
-    c.strokeStyle = warna().garis; c.lineWidth = b.redup ? 1 : 1.5;
-    c.globalAlpha = b.redup ? 0.45 : 1;
-    c.beginPath(); c.moveTo(r, 0); c.lineTo(w - r, 0); c.arcTo(w, 0, w, r, r); c.lineTo(w, h - r); c.arcTo(w, h, w - r, h, r); c.lineTo(r, h); c.arcTo(0, h, 0, h - r, r); c.lineTo(0, r); c.arcTo(0, 0, r, 0, r); c.fill(); c.stroke();
+    c.fillStyle = kertas2();
+    c.globalAlpha = 0.8;
+    bulat(c, 12, pita.y, PW - 24, pita.tinggi, 12);
+    c.fill();
     c.restore();
-    c.font = `600 ${Math.min(13, 13 * sk)}px ${FONT}`;
-    const jum = c.measureText(b.judul).width;
-    const ukur = jum > b.w - 10 ? 11 : Math.min(13, 13 * sk);
-    c.font = `600 ${ukur}px ${FONT}`;
-    c.fillStyle = warna().tinta;
+    c.save();
+    c.font = '600 10px ' + FONT;
+    c.fillStyle = C.tinta2;
+    c.textAlign = 'left'; c.textBaseline = 'bottom';
+    c.fillText(judul.toUpperCase(), 16, pita.y + 13);
+    c.restore();
+  }
+
+  function gambarBatang(c, C, b, x, y, lebar, tinggi, teks) {
+    const n = b.tidak + b.selamat || 1;
+    const wTidak = lebar * (b.tidak / n);
+    c.fillStyle = C.a2;
+    c.fillRect(x, y, wTidak, tinggi);
+    c.fillStyle = C.a1;
+    c.fillRect(x + wTidak, y, lebar - wTidak, tinggi);
+    if (teks) {
+      c.fillStyle = C.tinta2;
+      c.font = `10px ${FONT}`;
+      c.textAlign = 'center'; c.textBaseline = 'top';
+      c.fillText(teks, x + lebar / 2, y + tinggi + 3);
+    }
+  }
+
+  function gambarKotakAtas(c, C, tl) {
+    const b = tl.atas, k = tl.k;
+    const aktif = fase === 1 || fase === 2;
+    c.save();
+    c.fillStyle = kertas();
+    c.strokeStyle = aktif ? C.a1 : C.garis;
+    c.lineWidth = aktif ? 2 : 1.25;
+    bulat(c, b.x, b.y, b.w, b.h, 10);
+    c.fill(); c.stroke();
+    c.restore();
+
+    c.save();
+    c.font = '600 12px ' + FONT;
+    c.fillStyle = C.tinta;
     c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.fillText(b.judul, b.x + b.w / 2, b.y + 17 * sk);
-    const by = b.y + (30 * sk + (Math.ceil(b.orang.length / KOLOM) - 1) * JARAK * sk + DT * sk + 12 * sk);
-    const bw = ((KOLOM - 1) * JARAK + DT) * sk;
-    c.fillStyle = warna().a2; c.fillRect(b.x + b.w / 2 - bw / 2, by, bw * (b.tidakSelesai / b.orang.length || 0), 6 * sk);
-    c.fillStyle = warna().a1; c.fillRect(b.x + b.w / 2 - bw / 2 + bw * (b.tidakSelesai / b.orang.length || 0), by, bw * (b.barisText / b.orang.length || 0), 6 * sk);
-    c.fillStyle = warna().tinta2; c.font = `10px ${FONT}`; c.textBaseline = 'middle';
-    c.fillText(`${b.tidakSelesai} tidak selamat · ${b.barisText} selamat`, b.x + b.w / 2, by + 16 * sk);
-    b.titik.forEach(t => {
-      c.save(); c.globalAlpha = b.redup ? 0.45 : 1;
-      c.fillStyle = t.p.y ? warna().a1 : warna().a2;
-      drawTitik(c, t, sk);
-      c.restore();
-    });
-  }
+    c.fillText(k.aktif.judul + ' (' + b.orang.length + ' penumpang)', b.x + b.w / 2, b.y + 15);
 
-  const NODES = [
-    { id: 'root', cx: 180, cy: 30, teks: ['apakah', 'laki-laki?'], n: 20, anak: ['laki', 'perem'] },
-    { id: 'laki', cx: 90, cy: 110, teks: ['usia ≤ 9,3'], n: 10, anak: ['lakiYa', 'lakiTidak'] },
-    { id: 'perem', cx: 270, cy: 110, teks: ['kelas ≤ 2,5'], n: 10, anak: ['peremYa', 'peremTidak'] },
-    { id: 'lakiYa', cx: 45, cy: 190, pred: 'selamat', n: 1 },
-    { id: 'lakiTidak', cx: 135, cy: 190, pred: 'tidak selamat', n: 9 },
-    { id: 'peremYa', cx: 225, cy: 190, pred: 'selamat', n: 8 },
-    { id: 'peremTidak', cx: 315, cy: 190, pred: 'tidak selamat', n: 2 },
-  ];
+    b.titik.forEach(t => { c.fillStyle = t.p.y ? C.a1 : C.a2; gambarTitik(c, t); });
 
-  const SHOW = { 0: [], 1: [], 2: [], 3: [], 4: ['root', 'laki', 'perem'], 5: ['root', 'laki', 'perem'], 6: ['root', 'laki', 'perem'], 7: ['root', 'laki', 'perem', 'lakiYa', 'lakiTidak'], 8: ['root', 'laki', 'perem', 'lakiYa', 'lakiTidak'], 9: ['root', 'laki', 'perem', 'lakiYa', 'lakiTidak'], 10: ['root', 'laki', 'perem', 'lakiYa', 'lakiTidak', 'peremYa', 'peremTidak'] };
-
-  function drawMini(cv) {
-    const { c, w } = kanvas(cv);
-    const sk = w / 360;
-    c.save(); c.scale(sk, sk);
-    c.fillStyle = kertas();
-    c.fillRect(0, 0, 360, 220);
-    c.strokeStyle = warna().garis; c.lineWidth = 1.5;
-    const nodeById = {};
-    NODES.forEach(n => nodeById[n.id] = n);
-    const aktif = SHOW[langkah] || [];
-    const drawBox = (id) => {
-      const n = nodeById[id];
-      if (!aktif.includes(id)) return;
-      const x = n.cx - 39, y = n.cy - 22;
-      c.fillStyle = kertas(); c.fillRect(x, y, 78, 44);
-      c.strokeStyle = n.pred ? warna()[n.pred === 'selamat' ? 'a1' : 'a2'] : warna().garis; c.lineWidth = n.pred ? 2 : 1; c.strokeRect(x, y, 78, 44);
-      const lines = n.pred ? [`Prediksi: ${n.pred}`, `n = ${n.n}`] : [...n.teks, `n = ${n.n}`];
-      c.fillStyle = warna().tinta; c.font = `9px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle';
-      lines.forEach((t, i) => c.fillText(t, n.cx, n.cy + (i - (lines.length - 1) / 2) * 11));
-    };
-    const edges = [['root', 'laki'], ['root', 'perem'], ['laki', 'lakiYa'], ['laki', 'lakiTidak'], ['perem', 'peremYa'], ['perem', 'peremTidak']];
-    edges.forEach(([a, b]) => {
-      if (!aktif.includes(a) || !aktif.includes(b)) return;
-      const na = nodeById[a], nb = nodeById[b];
-      c.beginPath(); c.moveTo(na.cx, na.cy + 22); c.lineTo(nb.cx, nb.cy - 22); c.stroke();
-    });
-    aktif.forEach(drawBox);
+    gambarBatang(c, C, b, b.x + (b.w - b.barW) / 2, b.barY, b.barW, 7,
+      b.tidak + ' tidak selamat · ' + b.selamat + ' selamat');
     c.restore();
   }
+
+  function gambarKalimat(c, C) {
+    const k = tlKini.k;
+    if (!k.split) return;
+    if (fase !== 1 && fase !== 2) return;
+    const pesan = fase === 2
+      ? 'dipilih: ' + KAND[k.id].t + ' dengan salah prediksi ' + k.split.salah
+      : 'jika dibagi dengan ' + KAND[k.id].t + ': salah prediksi ' +
+        Math.min(k.split.ay.t, k.split.ay.s) + ' + ' + Math.min(k.split.at.t, k.split.at.s) + ' = ' + k.split.salah;
+    c.save();
+    c.font = '600 12px ' + FONT;
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    const w = c.measureText(pesan).width + 20;
+    const cx = TENGAH, cy = PITA_ATAS.y + PITA_ATAS.tinggi + 14;
+    c.fillStyle = kertas2();
+    bulat(c, cx - w / 2, cy - 11, w, 22, 11);
+    c.fill();
+    c.fillStyle = fase === 2 ? C.a1 : C.tinta;
+    c.fillText(pesan, cx, cy);
+    c.restore();
+  }
+
+  function gambarKotakBawah(c, C, b) {
+    const putus = b.jenis === 'selesai';
+    const kelas = b.orang.filter(p => p.y).length * 2 >= b.orang.length ? C.a1 : C.a2;
+    c.save();
+    c.fillStyle = kertas();
+    c.strokeStyle = b.jenis === 'akhir' ? kelas : C.garis;
+    c.lineWidth = b.jenis === 'akhir' ? 2 : 1.25;
+    c.globalAlpha = putus ? 0.9 : 1;
+    if (putus) c.setLineDash([4, 3]);
+    bulat(c, b.x, b.y, b.w, b.h, 9);
+    c.fill(); c.stroke();
+    c.restore();
+
+    c.save();
+    c.font = '600 10.5px ' + FONT;
+    c.fillStyle = putus ? C.redup : C.tinta;
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText(b.judul, b.x + b.w / 2, b.y + 12);
+    b.titik.forEach(t => { c.fillStyle = t.p.y ? C.a1 : C.a2; gambarTitik(c, t); });
+    c.font = '9.5px ' + FONT;
+    c.fillStyle = putus ? C.tinta2 : (kelas === C.a1 ? C.a1 : C.a2);
+    c.textBaseline = 'bottom';
+    c.fillText(b.catatan, b.x + b.w / 2, b.y + b.h - 4);
+    c.restore();
+  }
+
+  /* Garis siku dari kotak atas ke satu kotak bawah. progres 0..1.
+     Semua garis keluar dari satu batang di bawah kotak atas, lalu bercabang. */
+  function gambarGaris(c, C, dari, ke, label, progres) {
+    if (progres <= 0) return;
+    const x1 = dari.x + dari.w / 2, y1 = dari.y + dari.h;
+    const x2 = ke.x + ke.w / 2, y2 = ke.y;
+    const my = y1 + Math.max(14, Math.min(30, (y2 - y1) / 2 - 6));
+    c.save();
+    c.strokeStyle = C.garis;
+    c.lineWidth = 1.6;
+    c.setLineDash([]);
+    c.beginPath();
+    c.moveTo(x1, y1);
+    if (progres < 0.34) {
+      c.lineTo(x1, y1 + (my - y1) * (progres / 0.34));
+    } else if (progres < 0.67) {
+      c.lineTo(x1, my);
+      c.lineTo(x1 + (x2 - x1) * ((progres - 0.34) / 0.33), my);
+    } else {
+      c.lineTo(x1, my); c.lineTo(x2, my);
+      c.lineTo(x2, my + (y2 - my) * ((progres - 0.67) / 0.33));
+    }
+    c.stroke();
+
+    if (progres >= 1 && label) {
+      c.font = '600 9.5px ' + FONT;
+      const tw = c.measureText(label).width;
+      const cx = x1 + (x2 - x1) * 0.3;
+      c.fillStyle = kertas2();
+      bulat(c, cx - tw / 2 - 4, my - 15, tw + 8, 13, 6);
+      c.fill();
+      c.fillStyle = C.tinta2;
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(label, cx, my - 8.5);
+    }
+    c.restore();
+  }
+
+  let tlKini = null;
 
   function gambar() {
     const cv = $('#cv-panggung');
     if (!cv) return;
-    const { c, w, h } = kanvas(cv);
+    const { c, w } = kanvas(cv);
     if (!w) return;
-    c.clearRect(0, 0, w, h);
-    const sk = w / 560;
-    c.setTransform(sk * window.devicePixelRatio, 0, 0, sk * window.devicePixelRatio, 0, 0);
-    kotak(langkah).forEach(b => drawKotak(c, b));
+    const C = warna();
+    c.clearRect(0, 0, w, w * PH / PW);
+    const sk = w / PW;
+    c.setTransform(sk * devicePixelRatio, 0, 0, sk * devicePixelRatio, 0, 0);
+    c.setLineDash([]);
+
+    const tl = tataLetak(langkah);
+    tlKini = tl;
+    const k = tl.k;
+
+    gambarPita(c, C, PITA_ATAS, 'kelompok yang sedang diproses');
+    gambarPita(c, C, PITA_BAWAH, langkah === 10 ? 'kelompok akhir' : 'hasil pembagian dan kelompok yang menunggu');
+
+    /* langkah 10 adalah ringkasan: garis penghubung tidak digambar supaya
+       kotak atas (kelompok terakhir) tidak terbaca sebagai induk keempat daun. */
+    if (langkah !== 10) {
+      tl.bawah.forEach((b, i) => {
+        const label = i === 0 ? 'Ya' : (i === 1 ? 'Tidak' : '');
+        gambarGaris(c, C, tl.atas, b, label, progresGaris);
+      });
+    }
+
+    tl.bawah.forEach(b => gambarKotakBawah(c, C, b));
+    gambarKotakAtas(c, C, tl);
+    gambarKalimat(c, C);
+
+    /* titik: yang sudah di kotak atas tidak digambar dua kali */
+    const asalAtas = new Set(tl.atas.titik.map(t => t.p.asal));
     titik.forEach(t => {
-      const b = kotak(langkah).find(bb => bb.titik.some(t2 => t2.p.asal === t.p.asal));
-      c.save(); c.globalAlpha = b && b.redup ? 0.45 : 1;
-      c.fillStyle = t.p.y ? warna().a1 : warna().a2;
-      drawTitik(c, t, sk);
+      if (asalAtas.has(t.p.asal)) return;
+      c.save();
+      c.fillStyle = t.p.y ? C.a1 : C.a2;
+      gambarTitik(c, t);
       c.restore();
     });
-    if (langkah === 10) {
-      const bx = 130, by = 274, bw = 300, bh = 30;
-      c.fillStyle = kertas(); c.fillRect(bx, by, bw, bh);
-      c.strokeStyle = warna().a1; c.lineWidth = 2; c.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
-      c.fillStyle = warna().tinta; c.font = `600 12px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillText('20 dari 20 penumpang diprediksi benar.', bx + bw / 2, by + bh / 2);
+    tl.atas.titik.forEach(t => { c.fillStyle = t.p.y ? C.a1 : C.a2; gambarTitik(c, t); });
+
+    if (langkah === 10 && fase === 4) {
+      const bw = 322, bh = 28, bx = TENGAH - bw / 2, by = 8;
+      c.save();
+      c.fillStyle = kertas2();
+      c.strokeStyle = C.a1;
+      c.lineWidth = 2;
+      bulat(c, bx, by, bw, bh, 14);
+      c.fill(); c.stroke();
+      c.fillStyle = C.tinta;
+      c.font = '600 12px ' + FONT;
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText('20 dari 20 penumpang diprediksi benar.', TENGAH, by + bh / 2);
+      c.restore();
     }
-    drawMini($('#cv-mini'));
+
+    gambarPohon();
   }
 
-  const cvP = $('#cv-panggung'), cvM = $('#cv-mini');
+  /* ---- pohon ringkas di kartu terpisah, 380 x 250 ---- */
+  const TW = 380, TH = 250;
+  const SIMPUL = {
+    root: { x: 190, y: 34, baris: ['laki-laki?'], n: 20 },
+    laki: { x: 100, y: 112, baris: ['usia ≤ 9,3'], n: 10 },
+    perem: { x: 280, y: 112, baris: ['kelas ≤ 2,5'], n: 10 },
+    lakiYa: { x: 52, y: 196, pred: 'selamat', n: 1 },
+    lakiTidak: { x: 148, y: 196, pred: 'tidak selamat', n: 9 },
+    peremYa: { x: 232, y: 196, pred: 'selamat', n: 8 },
+    peremTidak: { x: 328, y: 196, pred: 'tidak selamat', n: 2 },
+  };
+  const ANAK = {
+    root: [['laki', 'Ya'], ['perem', 'Tidak']],
+    laki: [['lakiYa', 'Ya'], ['lakiTidak', 'Tidak']],
+    perem: [['peremYa', 'Ya'], ['peremTidak', 'Tidak']],
+  };
+
+  /* simpul yang sudah ada pada tiap langkah */
+  function simpulTampil() {
+    if (langkah < 4) return [];
+    if (langkah < 7) return ['root', 'laki', 'perem'];
+    if (langkah < 10) return ['root', 'laki', 'perem', 'lakiYa', 'lakiTidak'];
+    return Object.keys(SIMPUL);
+  }
+
+  function gambarPohon() {
+    const cv = $('#cv-pohon-ringkas');
+    if (!cv) return;
+    const { c, w } = kanvas(cv);
+    if (!w) return;
+    const C = warna();
+    c.clearRect(0, 0, w, w * TH / TW);
+    const sk = w / TW;
+    c.setTransform(sk * devicePixelRatio, 0, 0, sk * devicePixelRatio, 0, 0);
+
+    const tampil = new Set(simpulTampil());
+    const BW = 74, BH = 40;
+
+    /* garis dulu */
+    Object.keys(ANAK).forEach(id => {
+      if (!tampil.has(id)) return;
+      ANAK[id].forEach(([anak, label]) => {
+        if (!tampil.has(anak)) return;
+        const a = SIMPUL[id], b = SIMPUL[anak];
+        c.strokeStyle = C.garis;
+        c.lineWidth = 1.2;
+        c.beginPath();
+        c.moveTo(a.x, a.y + BH / 2);
+        c.lineTo(a.x, (a.y + BH / 2 + b.y - BH / 2) / 2);
+        c.lineTo(b.x, (a.y + BH / 2 + b.y - BH / 2) / 2);
+        c.lineTo(b.x, b.y - BH / 2);
+        c.stroke();
+        c.fillStyle = C.tinta2;
+        c.font = `9px ${FONT}`;
+        c.textAlign = 'right'; c.textBaseline = 'middle';
+        c.fillText(label, b.x - 6, (a.y + BH / 2 + b.y - BH / 2) / 2 - 6);
+      });
+    });
+
+    /* kotak simpul */
+    Object.keys(SIMPUL).forEach(id => {
+      if (!tampil.has(id)) return;
+      const s = SIMPUL[id];
+      c.fillStyle = kertas();
+      c.strokeStyle = s.pred ? (s.pred === 'selamat' ? C.a1 : C.a2) : C.garis;
+      c.lineWidth = s.pred ? 1.8 : 1.2;
+      bulat(c, s.x - BW / 2, s.y - BH / 2, BW, BH, 7);
+      c.fill(); c.stroke();
+
+      const baris = s.pred ? ['Prediksi:', s.pred] : s.baris;
+      c.fillStyle = C.tinta;
+      c.font = `9.5px ${FONT}`;
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      baris.forEach((t, i) => c.fillText(t, s.x, s.y - 6 + i * 11));
+      c.fillStyle = C.tinta2;
+      c.font = `9px ${FONT}`;
+      c.fillText(`n = ${s.n}`, s.x, s.y + 12);
+    });
+  }
+
+  /* ---- inisialisasi ---- */
   addEventListener('resize', gambar);
   document.addEventListener('tema', gambar);
-  document.fonts?.ready.then(() => {
-    posisiTarget(0);
-    titik.forEach(t => { t.x = t.tx; t.y = t.ty; });
-    perbarui();
-    gambar();
-  });
-})();
 
+  const cvPanggung = $('#cv-panggung');
+  if (cvPanggung) {
+    cvPanggung.style.aspectRatio = `${PW}/${PH}`;
+  }
+  loncatKe(tataLetak(0));
+  fase = 4;
+  perbarui();
+  gambar();
+  document.fonts?.ready.then(() => { perbarui(); gambar(); });
+
+})();
