@@ -50,25 +50,9 @@
   .kolom-ctl .ctl{margin:0}
   .panel-ket{font:.9rem/1.6 var(--sans);color:var(--tinta-2);margin:0}
   .panggung-pemilihan{margin:0 0 14px}
-  .kandidat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-  .kandidat .kartu{background:var(--kertas);border:1px solid var(--garis);border-radius:var(--radius);padding:8px 11px;font:.8rem/1.4 var(--sans);color:var(--tinta-2);transition:var(--gerak-cepat);min-height:96px;display:flex;flex-direction:column;gap:3px}
-  .kandidat .kartu .k-judul{color:var(--tinta);font-weight:600;font-size:.84rem}
-  .kandidat .kartu .k-angka{display:flex;flex-direction:column;gap:1px;font-size:.75rem;line-height:1.36;color:var(--tinta-2)}
-  .kandidat .kartu .k-angka b{font-weight:600;color:var(--tinta)}
-  .kandidat .kartu[hidden],.kandidat .kartu .k-angka[hidden],.kandidat .kartu .k-tanda[hidden],.kandidat .catatan-kecil[hidden]{display:none}
-  .kandidat .kartu .k-tanda{color:var(--aksen-1);font-weight:600;font-size:.72rem;margin-top:auto}
-  .kandidat .kartu.belum{opacity:.55}
-  .kandidat .kartu.teruji{border-color:var(--garis)}
-  .kandidat .kartu.diuji,.kandidat .kartu.menyala{border-color:var(--aksen-1);box-shadow:0 0 0 2px var(--aksen-1)}
-  .kandidat .kartu.dipilih{border-color:var(--aksen-1);box-shadow:0 0 0 2px var(--aksen-1)}
-  .kandidat .kartu.redup{opacity:.45}
-  .kandidat .catatan-kecil{font:.75rem/1.45 var(--sans);color:var(--tinta-2);font-style:italic;margin:0;grid-column:1/-1;min-height:1.45em}
+
   .pemilihan-progres{flex:1;min-width:80px;height:4px;background:var(--garis);border-radius:2px;overflow:hidden;margin-top:4px}
   .pemilihan-progres i{display:block;height:100%;width:0%;background:var(--aksen-1);transition:width .3s}
-  .kartu-pohon{margin-top:14px;background:var(--kertas);border:1px solid var(--garis);border-radius:var(--radius);padding:10px 12px 6px}
-  .kartu-pohon h4{margin:0 0 6px;font:600 .8rem var(--sans);color:var(--tinta)}
-  .kartu-pohon .bingkai-pohon{max-width:560px}
-  .kartu-pohon canvas{display:block;width:100%}
   .langkah-algo{margin:0;padding:0;list-style:none;font:.82rem/1.5 var(--sans);color:var(--tinta-2)}
   .langkah-algo li{padding:7px 10px;border-left:4px solid transparent;border-radius:0 var(--radius) var(--radius) 0;margin:0 0 6px}
   .langkah-algo li.aktif{border-left-color:var(--aksen-1);background:color-mix(in srgb,var(--aksen-1) 9%,transparent);color:var(--tinta)}
@@ -89,7 +73,6 @@
     #cv-pohon{aspect-ratio:352/296!important}
   }
   @media(max-width:700px){
-    .kandidat{grid-template-columns:1fr}
     table.tabel{font-size:.77rem;min-width:620px}
     table.tabel th,table.tabel td{padding:7px 7px}
     table.tabel td.n{font-size:.74rem}
@@ -210,28 +193,16 @@
     <p class="fig-ket" style="margin:0 0 12px">Sampel 20 penumpang Titanic, dipilih acak dari 714 baris. Satu titik adalah satu penumpang.</p>
     <div class="panggung-pemilihan">
       <div class="geser-x">
-        <canvas id="cv-panggung" style="aspect-ratio:760/490" role="img" aria-label="Panggung animasi dua pita. Pita atas berisi kelompok penumpang yang sedang diproses, digambar sebagai titik: lingkaran untuk selamat dan belah ketupat untuk tidak selamat. Pita bawah berisi kelompok hasil pembagian dan kelompok yang menunggu diproses, dihubungkan garis berlabel Ya dan Tidak."></canvas>
+        <canvas id="cv-panggung" style="aspect-ratio:700/400" role="img" aria-label="Animasi pemilihan pertanyaan pada 20 penumpang. Setiap langkah menampilkan satu kelompok yang sedang diproses sebagai titik, lingkaran untuk selamat dan belah ketupat untuk tidak selamat, dengan daftar split yang mungkin beserta jumlah salah prediksi di sebelah kanan kotak dan hasil pembagian di bawahnya. Kamera berpindah ke pohon di sebelah kanan setiap kali sebuah pertanyaan dipilih, dan pohon bertambah simpul sampai empat daun terakhir terbentuk."></canvas>
       </div>
     </div>
-    <div class="kandidat" id="pemilihan-kandidat">
-      <p class="catatan-kecil" hidden></p>
-      <div class="kartu belum"><span class="k-judul"></span><span class="k-angka" hidden><span>Ya <b data-isi="ya"></b></span><span>Tidak <b data-isi="tidak"></b></span><span>Salah prediksi <b data-isi="salah"></b></span></span><span class="k-tanda" hidden>✓ dipilih</span></div>
-      <div class="kartu belum" hidden><span class="k-judul"></span><span class="k-angka" hidden><span>Ya <b data-isi="ya"></b></span><span>Tidak <b data-isi="tidak"></b></span><span>Salah prediksi <b data-isi="salah"></b></span></span><span class="k-tanda" hidden>✓ dipilih</span></div>
-      <div class="kartu belum" hidden><span class="k-judul"></span><span class="k-angka" hidden><span>Ya <b data-isi="ya"></b></span><span>Tidak <b data-isi="tidak"></b></span><span>Salah prediksi <b data-isi="salah"></b></span></span><span class="k-tanda" hidden>✓ dipilih</span></div>
-    </div>
-    <p class="panel-ket" id="pemilihan-ket" aria-live="polite" style="min-height:96px;margin:14px 0 0">Kelompok awal: 20 penumpang, 9 selamat dan 11 tidak selamat. Jika semua penumpang diprediksi tidak selamat, 9 penumpang salah.</p>
-    <div class="kartu-pohon">
-      <h4>Pohon yang sedang dibangun</h4>
-      <div class="bingkai-pohon">
-        <canvas id="cv-pohon-ringkas" style="aspect-ratio:380/250" role="img" aria-label="Pohon ringkas yang bertambah satu tingkat setiap kali sebuah pertanyaan dipilih: akar bertanya apakah laki-laki, anak kiri bertanya usia, anak kanan bertanya kelas, lalu empat daun berisi prediksi selamat atau tidak selamat beserta jumlah penumpangnya."></canvas>
-      </div>
-    </div>
+    <p class="panel-ket" id="pemilihan-ket" aria-live="polite" style="min-height:96px;margin:14px 0 0">Kelompok yang sedang diproses: 20 penumpang, 9 selamat dan 11 tidak selamat. Tanpa pertanyaan pun, memprediksi semuanya tidak selamat sudah membuat 9 penumpang salah. Tiga split yang mungkin dicoba satu per satu: apakah laki-laki, apakah kelas 1 atau 2, dan apakah usia kurang dari atau sama dengan 35,5 tahun.</p>
     <div class="ctl" role="group" aria-label="Kontrol animasi pemilihan">
       <button type="button" class="btn p" id="pemilihan-putar">Putar</button>
       <button type="button" class="btn" id="pemilihan-maju">+1 langkah</button>
       <button type="button" class="btn" id="pemilihan-mundur" disabled>Mundur</button>
       <button type="button" class="btn" id="pemilihan-ulang">Ulang</button>
-      <span class="lbl" id="pemilihan-langkah">Langkah 0 dari 10</span>
+      <span class="lbl" id="pemilihan-langkah">Langkah 0 dari 13</span>
       <div class="pemilihan-progres" aria-hidden="true"><i id="pemilihan-progres-i"></i></div>
     </div>
   </div>
