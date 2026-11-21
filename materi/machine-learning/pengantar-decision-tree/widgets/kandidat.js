@@ -188,13 +188,13 @@
           c.fillText(fmt(v, 4), x, y - 5);
         }
         if (i === TERBAIK[mode]) {
-          c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-          if (L === TATA.sempit && p < 2) {
-            bintang(c, x + 22, y - 10, 5, C.emas);
-            c.textAlign = 'left';
+          if (p < 2) {
+            bintang(c, x + 22, y + 12, 5, C.emas);
+            c.textAlign = 'left'; c.textBaseline = 'middle';
             c.fillStyle = C.tinta; c.font = `600 9px ${FONT}`;
-            c.fillText('terbaik', x + 32, y - 6);
+            c.fillText('terbaik', x + 30, y + 12);
           } else {
+            c.textAlign = 'center'; c.textBaseline = 'alphabetic';
             bintang(c, x, y - 22, 5, C.emas);
             c.fillStyle = C.tinta; c.font = `600 9px ${FONT}`;
             c.fillText('terbaik', x, y - 32);
@@ -256,13 +256,16 @@
   }
 
   /* titik sasaran dalam satuan viewBox; 12 px layar sebagai batas minimum */
+  /* getBoundingClientRect mengikuti zoom halaman, clientWidth tidak; skala dihitung dari keduanya */
   function ketitik(ev) {
     const cv = $('#cv-kandidat');
     const r = cv.getBoundingClientRect();
+    const k = r.width / cv.clientWidth;
+    const px = (ev.clientX - r.left) / k, py = (ev.clientY - r.top) / k;
     return {
-      vx: (ev.clientX - r.left - sisi.gx) / sisi.s,
-      vy: (ev.clientY - r.top - sisi.gy) / sisi.s,
-      batas: 12 / sisi.s,
+      vx: (px - sisi.gx) / sisi.s,
+      vy: (py - sisi.gy) / sisi.s,
+      batas: 12 / (k * sisi.s),
     };
   }
 
