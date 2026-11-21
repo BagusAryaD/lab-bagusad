@@ -29,6 +29,15 @@
   table.tabel tbody tr.jeda td{color:var(--tinta-redup);letter-spacing:.2em;padding-top:2px;padding-bottom:2px;border-bottom:0}
   table.tabel tr:last-child td{border-bottom:0}
   .ctl[hidden]{display:none}
+  .kunci{display:inline-block;width:20px;height:0;border-top:2.5px solid currentColor;vertical-align:middle;margin-right:7px;transform:translateY(-2px)}
+  .kunci-gini{color:var(--aksen-1)}
+  .kunci-entropi{color:var(--aksen-2);border-top-style:dashed}
+  .kunci-galat{color:var(--emas);border-top-style:dotted}
+  .nilai{display:grid;gap:4px;margin-top:12px;font:.8rem var(--sans);color:var(--tinta-2)}
+  .nilai span{display:flex;align-items:center;gap:2px}
+  .nilai b{margin-left:auto;font:600 .95rem var(--mono);color:var(--tinta)}
+  .nilai-p{font:.78rem var(--sans);color:var(--tinta-redup)}
+  .nilai-p b{font:600 .82rem var(--mono);color:var(--tinta)}
 
   /* tata letak figur: lokal halaman ini, bukan di kit/* */
   .kisi-fig{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px;align-items:start}
@@ -56,7 +65,7 @@
     #cv-pohon{aspect-ratio:1.25/1!important}
     #cv-panggung{aspect-ratio:1.3/1!important}
     #cv-mini{aspect-ratio:1.6/1!important}
-    #cv-impurity{aspect-ratio:1.3/1!important}
+    #cv-impurity{aspect-ratio:1.1/1!important}
     #cv-kandidat{aspect-ratio:1.1/1!important}
     #cv-konstruksi{aspect-ratio:1.15/1!important}
     #cv-kedalaman{aspect-ratio:1.25/1!important}
@@ -236,17 +245,18 @@
     <h3 class="fig-judul">Gini, entropi, dan galat klasifikasi terhadap proporsi kelas</h3>
     <div class="kisi-3">
       <div class="panel">
-        <canvas id="cv-impurity" style="aspect-ratio:560/340" role="img" aria-label="Tiga kurva terhadap proporsi penumpang selamat: Gini dan entropi berbentuk lengkung mulus, galat klasifikasi berbentuk segitiga, ketiganya nol pada proporsi 0 dan 1 serta mencapai puncak pada 0,5"></canvas>
+        <canvas id="cv-impurity" tabindex="0" style="aspect-ratio:1/1;cursor:crosshair;touch-action:pan-y" role="img" aria-label="Tiga kurva terhadap proporsi penumpang selamat: Gini dan entropi berbentuk lengkung mulus, galat klasifikasi berbentuk segitiga, ketiganya nol pada proporsi 0 dan 1 serta mencapai puncak pada 0,5. Klik atau seret untuk mengubah proporsi, tombol panah kiri dan kanan mengubah 0,01, dengan Shift 0,1."></canvas>
       </div>
       <div class="panel">
-        <div class="grid" aria-live="polite">
-          <span>Gini<b id="imp-gini">0,4824</b></span>
-          <span>Entropi<b id="imp-entropi">0,9744 bit</b></span>
-          <span>Galat klasifikasi<b id="imp-galat">0,4062</b></span>
+        <div class="nilai" aria-live="polite">
+          <span><span class="kunci kunci-gini" aria-hidden="true"></span>Gini<b id="imp-gini">0,4838</b></span>
+          <span><span class="kunci kunci-entropi" aria-hidden="true"></span>Entropi<b id="imp-entropi">0,9765 bit</b></span>
+          <span><span class="kunci kunci-galat" aria-hidden="true"></span>Galat klasifikasi<b id="imp-galat">0,4100</b></span>
         </div>
-        <div class="ctl">
+        <div class="ctl" style="flex-direction:column;align-items:stretch;gap:7px">
           <label class="lbl" for="imp-p">Proporsi penumpang selamat (p)</label>
-          <input type="range" id="imp-p" min="0" max="1" step="0.01" value="0.41" aria-valuetext="0,41" style="flex:1;min-width:130px;accent-color:var(--aksen-1)">
+          <input type="range" id="imp-p" min="0" max="1" step="0.01" value="0.41" aria-valuetext="0,41" style="width:100%;accent-color:var(--aksen-1)">
+          <span class="nilai-p">p = <b id="imp-p-nilai">0,41</b></span>
         </div>
         <div class="ctl" role="group" aria-label="Nilai p siap pakai">
           <button type="button" class="btn" id="imp-p0">p = 0 (murni)</button>
@@ -256,10 +266,11 @@
         <div class="ctl">
           <button type="button" class="btn" id="imp-skala" aria-pressed="false">Skala entropi ÷ 2</button>
         </div>
-        <canvas id="cv-kisi" style="aspect-ratio:1/1;margin-top:12px" role="img" aria-label="Kisi sepuluh kali sepuluh berisi 100 penumpang; jumlah yang selamat mengikuti proporsi yang dipilih, digambar sebagai lingkaran, sisanya belah ketupat"></canvas>
+        <p class="fig-ket" id="imp-catatan" hidden style="margin-top:6px">Puncaknya sama dengan puncak Gini.</p>
+        <canvas id="cv-kisi" style="aspect-ratio:1/1;margin:14px auto 0;max-width:250px" role="img" aria-label="Kisi sepuluh kali sepuluh berisi 100 penumpang; jumlah yang selamat mengikuti proporsi yang dipilih, digambar sebagai lingkaran, sisanya belah ketupat"></canvas>
       </div>
     </div>
-    <p class="fig-ket">Kurva dihitung dari rumus untuk dua kelas. Kisi di kanan menunjukkan komposisi <i>node</i> berisi 100 penumpang pada proporsi yang dipilih.</p>
+    <p class="fig-ket">Kurva dihitung dari rumus untuk dua kelas. Kisi 100 penumpang menunjukkan komposisi <i>node</i> pada proporsi yang dipilih. Nilai bawaan <i>p</i> = 0,41; tombol <i>p</i> = 290/714 memakai proporsi <i>root node</i> yang tepat, 0,4062.</p>
   </div>
 
   <details class="temuan"><summary>Tebak dulu: sebuah <i>node</i> berisi 100 penumpang, 50 selamat dan 50 tidak selamat. Berapa indeks Gini-nya?</summary>
@@ -574,5 +585,6 @@ plt.show()</pre></div>
 <script src="../../../kit/vendor/katex/auto-render.min.js"></script>
 <script src="../../../kit/kit.js"></script>
 <script src="../../../kit/daftar-isi.js"></script>
+<script src="widgets/impurity.js"></script>
 </body>
 </html>
