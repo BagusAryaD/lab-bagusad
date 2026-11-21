@@ -59,16 +59,20 @@
   .langkah-algo li.aktif{border-left-color:var(--aksen-1);background:color-mix(in srgb,var(--aksen-1) 9%,transparent);color:var(--tinta)}
   .rincian{margin-top:12px;background:var(--kertas);border:1px solid var(--garis);border-radius:var(--radius);padding:12px 14px;font:.84rem/1.7 var(--sans);color:var(--tinta-2)}
   .rincian b{color:var(--tinta)}
+  .tip-pohon{font:.76rem/1.45 var(--sans);color:var(--tinta-redup);margin:9px 0 0;min-height:1.45em}
+  .tip-pohon b{color:var(--tinta);font-family:var(--mono);font-weight:600}
 
   @media(max-width:860px){
     .kisi-fig,.kisi-2,.kisi-2b,.kisi-3,.kisi-5{grid-template-columns:1fr}
-    #cv-pohon{aspect-ratio:1.25/1!important}
     #cv-panggung{aspect-ratio:1.3/1!important}
     #cv-mini{aspect-ratio:1.6/1!important}
     #cv-impurity{aspect-ratio:1.1/1!important}
     #cv-kandidat{aspect-ratio:1.1/1!important}
     #cv-konstruksi{aspect-ratio:1.15/1!important}
     #cv-kedalaman{aspect-ratio:1.25/1!important}
+  }
+  @media(max-width:532px){
+    #cv-pohon{aspect-ratio:352/296!important}
   }
   @media(max-width:700px){
     table.tabel{font-size:.77rem;min-width:620px}
@@ -157,6 +161,7 @@
       </div>
       <div class="panel">
         <canvas id="cv-pohon" style="aspect-ratio:640/400" role="img" aria-label="Pohon keputusan kedalaman dua: akar menanyakan apakah laki-laki, cabang kiri menanyakan usia, cabang kanan menanyakan kelas tiket, dan empat daun memberi prediksi selamat atau tidak selamat"></canvas>
+        <p class="tip-pohon" id="pohon-tip">Arahkan kursor ke kartu untuk melihat komposisinya.</p>
       </div>
     </div>
     <p class="fig-ket" id="pohon-hasil" aria-live="polite">Prediksi: <strong>selamat</strong>. Kelompok akhir: perempuan, kelas 1 atau 2, 159 penumpang, 150 di antaranya selamat (94,3%).</p>
@@ -585,6 +590,8 @@ plt.show()</pre></div>
 <script src="../../../kit/vendor/katex/auto-render.min.js"></script>
 <script src="../../../kit/kit.js"></script>
 <script src="../../../kit/daftar-isi.js"></script>
+<script src="widgets/data.js"></script>
+<script src="widgets/pohon-jalur.js"></script>
 <script src="widgets/impurity.js"></script>
 </body>
 </html>

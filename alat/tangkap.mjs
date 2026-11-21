@@ -51,6 +51,12 @@ const sasaran = [
     // sampul tidak memakai catatan mode di dalam kanvas
     siap: 'window.__tanpaCatatan = true; window.dispatchEvent(new Event("resize"));',
   },
+  {
+    halaman: 'materi/machine-learning/pengantar-decision-tree/index.html',
+    kanvas: '#cv-pohon',
+    tunggu: 1800,
+    keluar: 'aset/sampul-pengantar-decision-tree.jpg',
+  },
 ];
 
 const pilih = saring
