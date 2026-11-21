@@ -50,7 +50,8 @@
   .kolom-ctl .ctl{margin:0}
   .panel-ket{font:.9rem/1.6 var(--sans);color:var(--tinta-2);margin:0}
   .panggung-pemilihan{margin:0 0 14px}
-
+  .ctl .btn.ikon{padding:7px 9px;line-height:1}
+  .ctl .btn.ikon svg{display:block}
   .pemilihan-progres{flex:1;min-width:80px;height:4px;background:var(--garis);border-radius:2px;overflow:hidden;margin-top:4px}
   .pemilihan-progres i{display:block;height:100%;width:0%;background:var(--aksen-1);transition:width .3s}
   .langkah-algo{margin:0;padding:0;list-style:none;font:.82rem/1.5 var(--sans);color:var(--tinta-2)}
@@ -198,10 +199,20 @@
     </div>
     <p class="panel-ket" id="pemilihan-ket" aria-live="polite" style="min-height:96px;margin:14px 0 0">Kelompok yang sedang diproses: 20 penumpang, 9 selamat dan 11 tidak selamat. Tanpa pertanyaan pun, memprediksi semuanya tidak selamat sudah membuat 9 penumpang salah. Tiga split yang mungkin dicoba satu per satu: apakah laki-laki, apakah kelas 1 atau 2, dan apakah usia kurang dari atau sama dengan 35,5 tahun.</p>
     <div class="ctl" role="group" aria-label="Kontrol animasi pemilihan">
-      <button type="button" class="btn p" id="pemilihan-putar">Putar</button>
-      <button type="button" class="btn" id="pemilihan-maju">+1 langkah</button>
-      <button type="button" class="btn" id="pemilihan-mundur" disabled>Mundur</button>
-      <button type="button" class="btn" id="pemilihan-ulang">Ulang</button>
+      <button type="button" class="btn p ikon" id="pemilihan-putar" aria-label="Putar" title="Putar">
+        <svg id="ikon-putar" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="ikon-jeda" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+        <svg id="ikon-ulang" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="display:none"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      </button>
+      <button type="button" class="btn ikon" id="pemilihan-maju" aria-label="Maju satu langkah" title="+1 langkah">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M6 5l8 7-8 7z"/><path d="M16.5 5h2v14h-2z"/></svg>
+      </button>
+      <button type="button" class="btn ikon" id="pemilihan-mundur" aria-label="Mundur satu langkah" title="Mundur" disabled>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M18 5l-8 7 8 7z"/><path d="M5.5 5h2v14h-2z"/></svg>
+      </button>
+      <button type="button" class="btn ikon" id="pemilihan-ulang" aria-label="Ulang dari awal" title="Ulang">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      </button>
       <span class="lbl" id="pemilihan-langkah">Langkah 0 dari 13</span>
       <div class="pemilihan-progres" aria-hidden="true"><i id="pemilihan-progres-i"></i></div>
     </div>

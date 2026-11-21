@@ -574,6 +574,8 @@
   const btnPutar = $('#pemilihan-putar'), btnMaju = $('#pemilihan-maju');
   const btnMundur = $('#pemilihan-mundur'), btnUlang = $('#pemilihan-ulang');
   const lblLangkah = $('#pemilihan-langkah'), iProgres = $('#pemilihan-progres-i');
+  const ikPutar = $('#ikon-putar'), ikJeda = $('#ikon-jeda'), ikUlang = $('#ikon-ulang');
+
   function perbarui() {
     const ket = $('#pemilihan-ket');
     if (ket) ket.textContent = KETERANGAN[langkah] || '';
@@ -583,7 +585,14 @@
     if (btnMaju) btnMaju.disabled = langkah === MAKS_LANGKAH || sibuk;
     if (btnUlang) btnUlang.disabled = sibuk;
     if (btnPutar) {
-      btnPutar.textContent = putar ? 'Jeda' : (langkah >= MAKS_LANGKAH ? 'Putar ulang' : 'Putar');
+      const label = putar ? 'Jeda' : (langkah >= MAKS_LANGKAH ? 'Putar ulang' : 'Putar');
+      btnPutar.setAttribute('aria-label', label);
+      btnPutar.title = label;
+      if (ikPutar && ikJeda && ikUlang) {
+        ikPutar.style.display = (putar || langkah >= MAKS_LANGKAH) ? 'none' : '';
+        ikJeda.style.display = putar ? '' : 'none';
+        ikUlang.style.display = (!putar && langkah >= MAKS_LANGKAH) ? '' : 'none';
+      }
     }
   }
 
