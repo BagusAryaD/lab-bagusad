@@ -131,24 +131,25 @@
 
   /* ---- geometri scene ---- */
   const VW = 700, VH = 400;
-  const DT = 18, JARAK = 26, KOLOM = 5, KOLOM_HASIL = 6;
+  const DT = 16, JARAK = 24, KOLOM = 7;       // kotak kelompok: 7 kolom
+  const KOLOM_A = 5, JARAK_A = 22;            // kotak anak (titik sama besar DT)
   const BOX = { x: 0, y: 16, w: 240 };
   const DAFTAR = { x: 264, w: 190, y0: 16, h: 48, sela: 6 };
-  const HASIL = { w: 172, gap: 24, cx: 120 };
+  const HASIL = { w: 112, gap: 16, atas: 36 };
   const TX = 570, TY = 60;           // asal pohon di scene
   const BW = 92, BH = 48;
 
-  function tinggiIsi(n, kolom) {
+  function tinggiIsi(n, kolom, jarak = JARAK, dt = DT) {
     const baris = Math.max(1, Math.ceil(n / kolom));
-    return (baris - 1) * JARAK + DT;
+    return (baris - 1) * jarak + dt;
   }
 
-  function grid(orang, cx, atas, kolom) {
+  function grid(orang, cx, atas, kolom, jarak = JARAK, dt = DT) {
     return orang.map((p, i) => {
       const col = i % kolom, row = (i / kolom) | 0;
       return { p,
-        x: cx + (col - (kolom - 1) / 2) * JARAK,
-        y: atas + row * JARAK + DT / 2 };
+        x: cx + (col - (kolom - 1) / 2) * jarak,
+        y: atas + row * jarak + dt / 2 };
     });
   }
 
@@ -158,24 +159,28 @@
     return { orang, isi, x: BOX.x, y: BOX.y, w: BOX.w, h: 28 + isi + 10 + 7 + 12 + 8 };
   }
 
-  function hasilRect(r, id) {
+  /* Kotak anak di bawah kotak kelompok: kiri menerima hasil Ya, kanan Tidak.
+     Selebar kotak kelompok supaya garis siku terlihat rapi. */
+  function anakRect(r, id) {
     const box = kotakAktif(r);
     const b = bagi(GRUP[RONDE[r].grup](), KAND[id].uji);
-    const top = box.y + box.h + 30;
+    const top = box.y + box.h + HASIL.atas;
     const buat = (orang, x) => {
-      const isi = tinggiIsi(orang.length, KOLOM_HASIL);
-      return { x, y: top, w: HASIL.w, h: isi + 44, isi };
+      const isi = tinggiIsi(orang.length, KOLOM_A, JARAK_A);
+      let t = 0; orang.forEach(p => { if (!p.y) t++; });
+      return { x, y: top, w: HASIL.w, h: isi + 38, isi,
+        n: orang.length, salah: Math.min(t, orang.length - t) };
     };
     return { b,
-      kiri: buat(b.ya, HASIL.cx - HASIL.w - HASIL.gap / 2),
-      kanan: buat(b.tidak, HASIL.cx + HASIL.gap / 2) };
+      kiri: buat(b.ya, BOX.x),
+      kanan: buat(b.tidak, BOX.x + HASIL.w + HASIL.gap) };
   }
 
-  function maxTinggiHasil(r) {
+  function bawahAnak(r) {
     let mx = 0;
     RONDE[r].kandidat.forEach(id => {
-      const h = hasilRect(r, id);
-      mx = Math.max(mx, h.kiri.h, h.kanan.h);
+      const a = anakRect(r, id);
+      mx = Math.max(mx, a.kiri.y + a.kiri.h, a.kanan.y + a.kanan.h);
     });
     return mx;
   }
@@ -189,8 +194,8 @@
 
   function kfKerja(r, adaHasil) {
     const box = kotakAktif(r);
-    const y1 = adaHasil ? box.y + box.h + 30 + maxTinggiHasil(r) : box.y + box.h + 20;
-    return fit(-64, -8, DAFTAR.x + DAFTAR.w, y1);
+    const y1 = adaHasil ? bawahAnak(r) : box.y + box.h + 20;
+    return fit(BOX.x, -8, DAFTAR.x + DAFTAR.w, y1);
   }
 
   function kfPohon(ids, banner) {
@@ -228,6 +233,7 @@
   let orangAktif = [];                 // titik kelompok aktif, posisi tetap
   let pratinjau = [];                  // salinan titik untuk hasil pembagian
   let alphaHasil = 0, alphaDaftar = 1, alphaKerja = 1, alphaPemenang = 0, bannerAlpha = 0;
+  let garisProgres = 0;              // 0..1 gambar garis siku ke kotak anak
   let hasilId = null;                  // kandidat yang hasilnya sedang di panggung
   let barisAlpha = [1, 1, 1];
   let alphaPohon = {}, alphaGaris = {};
@@ -328,15 +334,15 @@
     const tks = grid(box.orang, BOX.w / 2, box.y + 28, KOLOM);
     pratinjau = box.orang.map((p, i) => ({ p, x: tks[i].x, y: tks[i].y, s: 1,
       tx: tks[i].x, ty: tks[i].y, ts: 1 }));
-    const h = hasilRect(r, id);
+    const h = anakRect(r, id);
     const peta = new Map();
     const isiPeta = (orang, rect) => {
       const cx = rect.x + rect.w / 2;
       orang.forEach((p, i) => {
-        const col = i % KOLOM_HASIL, row = (i / KOLOM_HASIL) | 0;
+        const col = i % KOLOM_A, row = (i / KOLOM_A) | 0;
         peta.set(p.asal, {
-          x: cx + (col - (KOLOM_HASIL - 1) / 2) * JARAK,
-          y: rect.y + 22 + row * JARAK + DT / 2,
+          x: cx + (col - (KOLOM_A - 1) / 2) * JARAK_A,
+          y: rect.y + 18 + row * JARAK_A + DT / 2,
         });
       });
     };
@@ -366,6 +372,7 @@
     if (m.arsip !== null) barisAlpha[(r > 0 ? 1 : 0) + m.arsip] = 0;
     fokusId = r === 1 ? 'laki' : (r === 2 ? 'perem' : null);
     alphaFokus = 0;
+    garisProgres = 0;
     if (m.awal) { pratinjau = []; alphaHasil = 0; hasilId = null; }
   }
 
@@ -382,9 +389,11 @@
       siapkanPratinjau(m.ronde, RONDE[m.ronde].kandidat[m.uji]);
       pratinjau.forEach(t => { t.x = t.tx; t.y = t.ty; t.s = t.ts; });
       alphaHasil = 1;
+      garisProgres = 1;
     } else {
       pratinjau = [];
       alphaHasil = 0;
+      garisProgres = 0;
       hasilId = null;
     }
     alphaPohon = {}; alphaGaris = {};
@@ -479,14 +488,26 @@
 
     /* --- langkah uji: arsipkan split sebelumnya, lalu tampilkan hasil baru --- */
     if (m.uji !== null) {
+      /* bingkai pertama kali belum memuat kotak anak, jadi kamera menepi dulu */
+      const tujuan = kfKerja(m.ronde, true);
+      const beda = Math.abs(kamera.z - tujuan.z) > 0.001 ||
+        Math.abs(kamera.cx - tujuan.cx) > 0.001 ||
+        Math.abs(kamera.cy - tujuan.cy) > 0.001;
+      if (beda) {
+        await terbang(tujuan, 500);
+        if (g !== generasi) return;
+      }
       if (m.arsip !== null) {
         const ok = await arsipkan(m, g);
         if (!ok || g !== generasi) return;
       }
       siapkanPratinjau(m.ronde, RONDE[m.ronde].kandidat[m.uji]);
       alphaHasil = 0;
-      /* kotak hasil memudar masuk bersama titik yang meluncur */
-      await luncur(pratinjau, 520, 14, el => { alphaHasil = clamp01(el / 260); });
+      garisProgres = 0;
+      /* garis siku dan kotak anak muncul dulu, baru titik meluncur masuk */
+      await pudar(260, e => { alphaHasil = e; garisProgres = e; });
+      if (g !== generasi) return;
+      await luncur(pratinjau, 520, 14);
       if (g !== generasi) return;
       alphaHasil = 1;
       fase = 4; perbarui(); gambar();
@@ -693,9 +714,6 @@
     c.fillStyle = C.tinta;
     c.textAlign = 'center'; c.textBaseline = 'middle';
     c.fillText(judulAktif(r) + ' (' + g.length + ' penumpang)', box.x + box.w / 2, box.y + 14);
-    c.fillStyle = C.tinta2;
-    c.font = '10px ' + FONT;
-    c.fillText('tanpa pertanyaan: salah ' + Math.min(tidak, selamat), box.x + box.w / 2, box.y + box.h + 16);
     c.restore();
 
     /* titik kelompok aktif */
@@ -713,8 +731,16 @@
       `${tidak} tidak selamat · ${selamat} selamat`);
     c.restore();
 
-    /* hasil pembagian */
+    /* hasil pembagian: garis siku + kotak anak */
     if (alphaHasil > 0 && hasilId) gambarHasil(c, C, r, hasilId);
+
+    /* titik hasil: salinan yang meluncur ke dalam kotak anak */
+    if (pratinjau.length) {
+      c.save();
+      c.globalAlpha = alphaKerja;
+      pratinjau.forEach(t => { c.fillStyle = t.p.y ? C.a1 : C.a2; gambarTitik(c, t); });
+      c.restore();
+    }
   }
 
   function gambarDaftar(c, C, m) {
@@ -782,15 +808,57 @@
     });
   }
 
+  /* Garis siku dari kotak kelompok ke satu kotak anak, digambar bertahap:
+     turun dulu, lalu lari horizontal, lalu turun ke kotak anak. */
+  function garisSiku(c, C, x1, y1, x2, y2, progres, label) {
+    if (progres <= 0) return;
+    const my = y1 + 16;
+    c.save();
+    c.strokeStyle = C.garis;
+    c.lineWidth = 1.6;
+    c.beginPath();
+    c.moveTo(x1, y1);
+    if (progres < 0.34) {
+      c.lineTo(x1, y1 + (my - y1) * (progres / 0.34));
+    } else if (progres < 0.67) {
+      c.lineTo(x1, my);
+      c.lineTo(x1 + (x2 - x1) * ((progres - 0.34) / 0.33), my);
+    } else {
+      c.lineTo(x1, my); c.lineTo(x2, my);
+      c.lineTo(x2, my + (y2 - my) * ((progres - 0.67) / 0.33));
+    }
+    c.stroke();
+
+    if (progres >= 1 && label) {
+      c.font = '600 9.5px ' + FONT;
+      const tw = c.measureText(label).width;
+      const cx = x1 + (x2 - x1) / 2;
+      c.fillStyle = kertas2();
+      bulat(c, cx - tw / 2 - 4, my - 15, tw + 8, 13, 6);
+      c.fill();
+      c.fillStyle = C.tinta2;
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(label, cx, my - 8.5);
+    }
+    c.restore();
+  }
+
   function gambarHasil(c, C, r, id) {
-    const h = hasilRect(r, id);
-    const k = KAND[id];
+    const box = kotakAktif(r);
+    const h = anakRect(r, id);
+    const x1 = box.x + box.w / 2, y1 = box.y + box.h;
     const paket = [
-      { rect: h.kiri, judul: 'Ya: ' + k.yaT, b: h.b.ay, salah: Math.min(h.b.ay.t, h.b.ay.s) },
-      { rect: h.kanan, judul: 'Tidak: ' + k.tiT, b: h.b.at, salah: Math.min(h.b.at.t, h.b.at.s) },
+      { rect: h.kiri, label: 'Ya', b: h.b.ay, salah: h.kiri.salah },
+      { rect: h.kanan, label: 'Tidak', b: h.b.at, salah: h.kanan.salah },
     ];
     c.save();
     c.globalAlpha = alphaHasil;
+
+    /* garis dulu supaya kotak anak tergantung di ujungnya */
+    paket.forEach(o => {
+      garisSiku(c, C, x1, y1, o.rect.x + o.rect.w / 2, o.rect.y, garisProgres, o.label);
+    });
+
     paket.forEach(o => {
       c.fillStyle = kertas();
       c.strokeStyle = C.garis;
@@ -800,11 +868,12 @@
       c.font = '600 10.5px ' + FONT;
       c.fillStyle = C.tinta;
       c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillText(o.judul, o.rect.x + o.rect.w / 2, o.rect.y + 13);
-      c.font = '9.5px ' + FONT;
-      c.fillStyle = C.tinta2;
-      c.textBaseline = 'bottom';
-      c.fillText(`${o.b.n} penumpang · salah ${o.salah}`, o.rect.x + o.rect.w / 2, o.rect.y + o.rect.h - 5);
+      c.fillText(`${o.b.n} penumpang`, o.rect.x + o.rect.w / 2, o.rect.y + 10);
+      const menang = o.b.s * 2 >= o.b.n;
+      c.font = '600 9.5px ' + FONT;
+      c.fillStyle = menang ? C.a1 : C.a2;
+      c.fillText('salah ' + o.salah, o.rect.x + o.rect.w / 2,
+        o.rect.y + 18 + o.rect.isi + 11);
     });
     c.restore();
   }
