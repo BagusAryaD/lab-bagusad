@@ -53,7 +53,12 @@
   .kandidat .kartu{background:var(--kertas);border:1px solid var(--garis);border-radius:var(--radius);padding:10px 12px;font:.82rem/1.5 var(--sans);color:var(--tinta-2);transition:var(--gerak-cepat)}
   .kandidat .kartu b{display:block;color:var(--tinta);font-size:.86rem;margin-bottom:3px}
   .kandidat .kartu.dipilih{border-color:var(--aksen-1);box-shadow:0 0 0 1px var(--aksen-1)}
-  .kandidat .kartu.redup{opacity:.5}
+  .kandidat .kartu.diuji{border-color:var(--aksen-1);box-shadow:0 0 0 2px var(--aksen-1)}
+  .kandidat .kartu.belum{opacity:.6}
+  .kandidat .tanda{color:var(--aksen-1);font-weight:600;font-size:.72rem;margin-top:2px}
+  .kandidat .catatan-kecil{font:.75rem/1.5 var(--sans);color:var(--tinta-2);font-style:italic;margin:0 0 6px}
+  .pemilihan-progres{flex:1;min-width:80px;height:4px;background:var(--garis);border-radius:2px;overflow:hidden;margin-top:4px}
+  .pemilihan-progres i{display:block;height:100%;width:0%;background:var(--aksen-1);transition:width .3s}
   .langkah-algo{margin:0;padding:0;list-style:none;font:.82rem/1.5 var(--sans);color:var(--tinta-2)}
   .langkah-algo li{padding:7px 10px;border-left:4px solid transparent;border-radius:0 var(--radius) var(--radius) 0;margin:0 0 6px}
   .langkah-algo li.aktif{border-left-color:var(--aksen-1);background:color-mix(in srgb,var(--aksen-1) 9%,transparent);color:var(--tinta)}
@@ -216,6 +221,7 @@
       <button type="button" class="btn" id="pemilihan-mundur" disabled>Mundur</button>
       <button type="button" class="btn" id="pemilihan-ulang">Ulang</button>
       <span class="lbl" id="pemilihan-langkah">Langkah 0 dari 10</span>
+      <div class="pemilihan-progres" aria-hidden="true"><i id="pemilihan-progres-i"></i></div>
     </div>
   </div>
 </section>
@@ -598,5 +604,6 @@ plt.show()</pre></div>
 <script src="widgets/kandidat.js"></script>
 <script src="widgets/kedalaman.js"></script>
 <script src="widgets/konstruksi.js"></script>
+<script src="widgets/pemilihan.js"></script>
 </body>
 </html>

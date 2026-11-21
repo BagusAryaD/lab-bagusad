@@ -353,5 +353,4 @@
   $('#kandidat-entropi')?.addEventListener('click', () => ganti('E'));
   $('#kandidat-terbaik')?.addEventListener('click', () => pilih(TERBAIK[mode]));
   rincian();
-  window.__kandidat = { KAND, PANEL, TERBAIK, mode: () => mode, sel: () => sel };
 })();
