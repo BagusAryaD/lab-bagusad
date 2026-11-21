@@ -73,7 +73,10 @@ layar dari `alat/pratinjau.mjs`.
   untuk `.kode`, dan KaTeX (`$$...$$` serta `\(...\)`). Mengekspos `window.Kit`:
   `warna()`, `rng(seed)`, `gauss(r)`, `kanvas(cv)`, `lihat(el, fn)`.
 - `data/materi.json` adalah satu-satunya sumber daftar materi. `beranda.js`
-  merendernya jadi kartu; urutan dalam topik mengikuti field `bagian`.
+  merendernya jadi kartu; urutan dalam topik mengikuti field `bagian`. Pencarian
+  dan filter topik di beranda hanya menyembunyikan kartu yang sudah dirender,
+  bukan merender ulang, dan daftar topik di dropdown filter dibuat dari
+  `data.topik`.
 - Widget materi ada di `materi/<topik>/<slug>/widgets/*.js`, dimuat setelah
   `kit.js`, dan wajib menggambar ulang pada `resize` dan event `tema`.
 

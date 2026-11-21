@@ -75,7 +75,22 @@
   <section class="arsip" id="arsip" aria-labelledby="arsip-judul">
     <div class="arsip-kepala">
       <h2 id="arsip-judul">Arsip materi</h2>
-      <p class="arsip-hitung" id="arsip-hitung"></p>
+      <p class="arsip-hitung" id="arsip-hitung" aria-live="polite"></p>
+    </div>
+    <div class="arsip-alat" id="alat-arsip" role="search" hidden>
+      <div class="cari">
+        <svg class="cari-ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16.2 16.2 4.3 4.3"/></svg>
+        <label class="hanya-pembaca" for="cari-materi">Cari materi</label>
+        <input id="cari-materi" type="search" placeholder="Cari materi" autocomplete="off" spellcheck="false" enterkeyhint="search" aria-controls="daftar-materi">
+        <button type="button" class="cari-bersih" id="cari-bersih" hidden aria-label="Hapus pencarian">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="pilih">
+        <label class="hanya-pembaca" for="filter-topik">Filter topik</label>
+        <select id="filter-topik" aria-controls="daftar-materi"></select>
+        <svg class="pilih-panah" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
     </div>
     <div id="daftar-materi"></div>
     <noscript>

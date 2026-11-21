@@ -7,6 +7,7 @@ body.beranda,body.profil{font:1rem/1.65 var(--sans);-webkit-font-smoothing:antia
 :where(body.beranda,body.profil) p{margin:0}
 .lewati{position:fixed;top:10px;left:10px;z-index:2000;padding:10px 16px;border-radius:999px;background:var(--aksen-1);color:var(--kertas);font:600 .85rem var(--sans);text-decoration:none;transform:translateY(-160%)}
 .lewati:focus{transform:none}
+.hanya-pembaca{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 
 .situs{position:sticky;top:0;z-index:100;border-bottom:1px solid var(--garis);background:color-mix(in srgb,var(--kertas) 88%,transparent);-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%)}
 .situs-isi{display:flex;align-items:center;gap:26px;max-width:var(--lebar,1120px);margin:0 auto;padding:0 24px;height:62px}
@@ -56,6 +57,35 @@ body.beranda,body.profil{font:1rem/1.65 var(--sans);-webkit-font-smoothing:antia
 .arsip-kepala{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:34px;padding-bottom:14px;border-bottom:1px solid var(--garis)}
 .arsip-kepala h2{margin:0;font:600 1.45rem/1.2 var(--sans);letter-spacing:-.02em;color:var(--judul)}
 .arsip-hitung{font:500 .74rem var(--mono);letter-spacing:.04em;color:var(--tinta-redup);font-variant-numeric:tabular-nums}
+
+/* ── pencarian dan filter topik ── */
+.arsip-alat{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:32px}
+.arsip-alat[hidden]{display:none}
+.cari{position:relative;flex:1 1 260px;max-width:360px;display:flex;align-items:center}
+.cari-ikon{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--tinta-redup);pointer-events:none;transition:color .2s}
+.cari input{width:100%;height:44px;padding:0 42px;border:1px solid var(--garis);border-radius:999px;background:var(--kertas-2);color:var(--tinta);font:500 .9rem var(--sans);appearance:none;-webkit-appearance:none;transition:border-color .2s,background .2s}
+.cari input::placeholder{color:var(--tinta-redup);opacity:1}
+.cari input:hover{border-color:color-mix(in srgb,var(--aksen-1) 45%,var(--garis))}
+.cari input:focus{outline:2px solid var(--aksen-1);outline-offset:2px;border-color:var(--aksen-1);background:var(--kertas)}
+.cari:focus-within .cari-ikon{color:var(--aksen-1)}
+/* tombol silang bawaan browser diganti tombol sendiri di bawah */
+.cari input::-webkit-search-cancel-button,
+.cari input::-webkit-search-decoration{appearance:none;-webkit-appearance:none}
+.cari-bersih{position:absolute;right:5px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--tinta-redup);cursor:pointer;transition:background .2s,color .2s}
+.cari-bersih[hidden]{display:none}
+.cari-bersih:hover{background:color-mix(in srgb,var(--tinta) 8%,transparent);color:var(--tinta)}
+.cari-bersih svg{width:14px;height:14px}
+.pilih{position:relative;display:flex;align-items:center;margin-left:auto}
+.pilih select{height:44px;max-width:280px;padding:0 38px 0 16px;border:1px solid var(--garis);border-radius:999px;background:var(--kertas-2);color:var(--tinta);font:500 .88rem var(--sans);text-overflow:ellipsis;white-space:nowrap;cursor:pointer;transition:border-color .2s,background .2s;appearance:none;-webkit-appearance:none}
+.pilih select:hover{border-color:color-mix(in srgb,var(--aksen-1) 45%,var(--garis))}
+.pilih select:focus{outline:2px solid var(--aksen-1);outline-offset:2px;border-color:var(--aksen-1);background:var(--kertas)}
+.pilih select option{background:var(--kertas);color:var(--tinta)}
+.pilih-panah{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--tinta-redup);pointer-events:none;transition:color .2s}
+.pilih:focus-within .pilih-panah{color:var(--aksen-1)}
+.arsip-kosong{padding:44px 24px 40px;border:1px dashed var(--garis);border-radius:14px;text-align:center}
+.arsip-kosong-judul{font:600 1.05rem/1.4 var(--sans);color:var(--judul)}
+.arsip-kosong-ket{margin:6px 0 0;font:.92rem/1.6 var(--sans);color:var(--tinta-2)}
+.arsip-kosong .tombol-garis{margin-top:18px;cursor:pointer}
 .topik+.topik{margin-top:64px}
 .topik-kepala{max-width:62ch;margin-bottom:24px}
 .topik-nama{margin:0 0 6px;font:600 1.15rem/1.35 var(--sans);letter-spacing:-.012em;color:var(--judul)}
@@ -132,6 +162,12 @@ body.profil .kaki{margin-top:auto;border-top:1px solid var(--garis)}
   .hero-b,.arsip,.profil-hero{padding-left:16px;padding-right:16px}
   .hero-b,.profil-hero{padding-top:48px}
   .arsip{padding-top:64px}
+  .arsip-alat{gap:8px;margin-bottom:26px}
+  .cari{flex-basis:100%;max-width:none}
+  .cari input,.pilih select{font-size:1rem}
+  .pilih{width:100%;margin-left:0}
+  .pilih select{width:100%;max-width:none}
+  .arsip-kosong{padding:36px 18px 32px}
   .hero-b h1{max-width:14ch}
   /* figur simulasi disembunyikan di ponsel; pembungkusnya ikut disembunyikan
      agar grid tidak menyisakan celah. Titik henti ini harus sama dengan
@@ -143,7 +179,7 @@ body.profil .kaki{margin-top:auto;border-top:1px solid var(--garis)}
 }
 @media(prefers-reduced-motion:reduce){
   .arsip-siap .kartu{opacity:1;transform:none}
-  .kartu,.kartu-media img,.tombol-utama,.tombol-garis,.kartu-buka .panah,.situs-nav a::after{transition:none}
+  .kartu,.kartu-media img,.tombol-utama,.tombol-garis,.kartu-buka .panah,.situs-nav a::after,.cari input,.cari-ikon,.cari-bersih,.pilih select,.pilih-panah{transition:none}
   .situs-nav a[aria-current]::after{animation:none}
 }
 @media(prefers-reduced-transparency:reduce){

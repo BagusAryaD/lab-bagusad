@@ -137,6 +137,11 @@
   const wadah = document.getElementById('daftar-materi');
   if (!wadah) return;
 
+  const alat = document.getElementById('alat-arsip');
+  const inputCari = document.getElementById('cari-materi');
+  const tombolBersih = document.getElementById('cari-bersih');
+  const pilihTopik = document.getElementById('filter-topik');
+
   const tanggal = (s) => {
     if (!s) return '';
     const [y, m, d] = String(s).split('-').map(Number);
@@ -144,10 +149,23 @@
     return new Date(y, m - 1, d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
+  // kunci pencarian: huruf kecil, tanpa aksen dan tanda baca,
+  // supaya "Monte-Carlo" dan "monte carlo" dianggap sama
+  const normal = (s) => String(s ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
   // sampul punya versi terang dan gelap; versi yang tampil dipilih lewat CSS,
   // bukan JS, supaya tidak pernah salah gambar saat tema berganti
-  const buatKartu = (m) => {
+  const buatKartu = (m, t) => {
     const artikel = el('article', 'kartu');
+    // indeks teks untuk pencarian, dihitung sekali saat kartu dibuat
+    artikel.dataset.cari = normal([
+      m.judul, m.subjudul, m.ringkas, m.bagian ? 'bagian ' + m.bagian : '', t.nama, t.ringkas
+    ].filter(Boolean).join(' '));
     const a = el('a', 'kartu-taut');
     a.href = m.berkas;
 
@@ -216,18 +234,14 @@
     const materi = (Array.isArray(data.materi) ? data.materi : []).filter(m => m && m.status !== 'draft');
     wadah.replaceChildren();
 
-    const hitung = $('#arsip-hitung');
-    if (hitung) {
-      hitung.textContent = materi.length + ' materi' + (topik.length > 1 ? ' · ' + topik.length + ' topik' : '');
-    }
-
-    let ada = 0;
+    // kelompokkan sekali di awal; filter sesudahnya hanya menyembunyikan kartu,
+    // jadi gambar tidak dimuat ulang dan fokus input tidak hilang
+    const blokTopik = [];
     topik.forEach(t => {
       const isi = materi
         .filter(m => m.topik === t.slug)
         .sort((a, b) => (a.bagian || 0) - (b.bagian || 0));
       if (!isi.length) return;
-      ada++;
 
       const blok = el('section', 'topik');
       const kepala = el('div', 'topik-kepala');
@@ -239,17 +253,94 @@
       blok.append(kepala);
 
       const daftar = el('div', 'daftar-kartu');
-      isi.forEach(m => daftar.append(buatKartu(m)));
+      const kartu = isi.map(m => {
+        const k = buatKartu(m, t);
+        daftar.append(k);
+        return { el: k, cari: k.dataset.cari };
+      });
       blok.append(daftar);
       wadah.append(blok);
+
+      blokTopik.push({ el: blok, slug: t.slug, nama: t.nama, kartu });
     });
 
-    if (!ada) {
+    if (!blokTopik.length) {
       wadah.append(el('p', 'pesan-galat', 'Belum ada materi yang siap dibaca.'));
       return;
     }
 
-    const semua = [...wadah.querySelectorAll('.kartu')];
+    const hitung = $('#arsip-hitung');
+
+    const kosong = el('div', 'arsip-kosong');
+    kosong.hidden = true;
+    kosong.append(
+      el('p', 'arsip-kosong-judul', 'Tidak ada materi yang cocok'),
+      el('p', 'arsip-kosong-ket', 'Coba kata kunci lain atau kembali ke semua topik.')
+    );
+    const reset = el('button', 'tombol-garis', 'Hapus filter');
+    reset.type = 'button';
+    kosong.append(reset);
+    wadah.append(kosong);
+
+    let topikAktif = '';
+
+    // daftar topik diambil dari data, jadi topik baru otomatis ikut
+    pilihTopik.append(new Option('Semua topik', ''));
+    blokTopik.forEach(b => pilihTopik.append(new Option(b.nama, b.slug)));
+
+    const terapkan = () => {
+      const kata = normal(inputCari.value).split(' ').filter(Boolean);
+      const menyaring = kata.length > 0 || topikAktif !== '';
+      let jumlah = 0;
+
+      blokTopik.forEach(b => {
+        const topikCocok = !topikAktif || b.slug === topikAktif;
+        let tampil = 0;
+        b.kartu.forEach(k => {
+          const cocok = topikCocok && kata.every(w => k.cari.includes(w));
+          k.el.hidden = !cocok;
+          if (!cocok) return;
+          // kartu yang baru muncul karena filter tidak boleh tertahan transparan
+          if (menyaring) k.el.classList.add('tampil');
+          tampil++;
+        });
+        b.el.hidden = !tampil;
+        jumlah += tampil;
+      });
+
+      kosong.hidden = jumlah > 0;
+      tombolBersih.hidden = !inputCari.value;
+      // #arsip-hitung juga live region, jadi perubahan jumlah ikut dibacakan
+      if (hitung) hitung.textContent = jumlah + ' materi';
+    };
+
+    const bersihkan = () => {
+      inputCari.value = '';
+      topikAktif = '';
+      pilihTopik.value = '';
+      terapkan();
+      inputCari.focus();
+    };
+
+    inputCari.addEventListener('input', terapkan);
+    inputCari.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && inputCari.value) {
+        e.preventDefault();
+        inputCari.value = '';
+        terapkan();
+      }
+    });
+    pilihTopik.addEventListener('change', () => {
+      topikAktif = pilihTopik.value;
+      terapkan();
+    });
+    tombolBersih.addEventListener('click', bersihkan);
+    reset.addEventListener('click', bersihkan);
+
+    terapkan();
+    alat.hidden = false;
+
+    const semua = blokTopik.flatMap(b => b.kartu.map(k => k.el));
     if (!reduce.matches && 'IntersectionObserver' in window) {
       // kelas disiapkan lebih dulu supaya kartu tidak sempat berkedip
       wadah.classList.add('arsip-siap');
