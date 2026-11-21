@@ -189,9 +189,16 @@
         }
         if (i === TERBAIK[mode]) {
           c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-          bintang(c, x, y - 22, 5, C.emas);
-          c.fillStyle = C.tinta; c.font = `600 9px ${FONT}`;
-          c.fillText('terbaik', x, y - 32);
+          if (L === TATA.sempit && p < 2) {
+            bintang(c, x + 22, y - 10, 5, C.emas);
+            c.textAlign = 'left';
+            c.fillStyle = C.tinta; c.font = `600 9px ${FONT}`;
+            c.fillText('terbaik', x + 32, y - 6);
+          } else {
+            bintang(c, x, y - 22, 5, C.emas);
+            c.fillStyle = C.tinta; c.font = `600 9px ${FONT}`;
+            c.fillText('terbaik', x, y - 32);
+          }
         }
       });
 
@@ -308,7 +315,7 @@
   function atur() {
     const cv = $('#cv-kandidat');
     if (!cv) return;
-    const sempit = cv.clientWidth < 600;
+    const sempit = cv.clientWidth < 720;
     L = sempit ? TATA.sempit : TATA.lebar;
     cv.style.setProperty('aspect-ratio', `${L.vb.w} / ${L.vb.h}`, 'important');
   }
