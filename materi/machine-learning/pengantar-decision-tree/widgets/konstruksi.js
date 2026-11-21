@@ -84,7 +84,7 @@
     return new Promise(res => {
       const t0 = performance.now();
       const step = now => {
-        const k = Math.min(1, (now - t0) / ms);
+        const k = Math.min(1, Math.max(0, (now - t0) / ms));
         frame(k);
         gambar();
         if (k < 1) requestAnimationFrame(step); else res();
@@ -203,14 +203,18 @@
   let timer = null;
 
   function ketTeks(k, selesai) {
-    const seri = k.aktif.some(n => n.n > 0 && n.c0 === n.c1)
-      ? ' Catatan seri: 1 tidak selamat dan 1 selamat, prediksi mengikuti kelas dengan kode lebih kecil (tidak selamat).' : '';
     if (langkah === 0) return `Dibutuhkan ${k.total} split untuk kedalaman ${maks}. Setiap split melewati tiga fase: periksa, pilih, lalu bagi.`;
-    if (selesai) return (maks === 3
-      ? 'Semua leaf node berhenti karena kedalaman maksimum 3. Hanya satu leaf node yang murni.'
-      : `Semua leaf node berhenti karena kedalaman maksimum ${maks}.`) + seri;
+    if (selesai) return `Semua ${k.total} split sudah dilakukan.`;
     if (langkah === 5 || langkah === 6) return 'Split ini tidak mengubah prediksi, tetapi membuat kelompok lebih homogen.';
     return `Split ${langkah} dari ${k.total} sudah dilakukan.`;
+  }
+
+  function bannerTeks(k) {
+    const seri = k.aktif.some(n => n.n > 0 && n.c0 === n.c1)
+      ? ' Catatan seri: 1 tidak selamat dan 1 selamat, prediksi mengikuti kelas dengan kode lebih kecil (tidak selamat).' : '';
+    return (maks === 3
+      ? 'Semua leaf node berhenti karena kedalaman maksimum 3. Hanya satu leaf node yang murni.'
+      : `Semua leaf node berhenti karena kedalaman maksimum ${maks}.`) + seri;
   }
 
   let galatSebelum = null;
@@ -226,6 +230,8 @@
     if (butir) [...butir].forEach((li, i) => li.classList.toggle('aktif', i + 1 === fase));
     set('#kon-kedalaman-nilai', String(maks));
     set('#kon-ket', ketTeks(k, selesai));
+    const banner = $('#kon-banner');
+    if (banner) { banner.hidden = !selesai || langkah === 0; banner.textContent = selesai ? bannerTeks(k) : ''; }
     sl.setAttribute('aria-valuetext', String(maks));
     btnMaju.disabled = selesai;
   }
