@@ -430,11 +430,11 @@
     const rect = rectBaris(j);
     const tx = rect.x + rect.w * 0.4, ty = rect.y + rect.h * 0.6;
     pratinjau.forEach(t => { t.tx = tx; t.ty = ty; t.ts = 0; });
-    await luncur(pratinjau, 460, 10, el => { alphaHasil = 1 - clamp01(el / 240); });
+    await luncur(pratinjau, 650, 14, el => { alphaHasil = 1 - clamp01(el / 350); });
     pratinjau = [];
     alphaHasil = 0;
     if (g !== generasi) return false;
-    await pudar(240, e => { barisAlpha[j] = e; });
+    await pudar(350, e => { barisAlpha[j] = e; });
     return g === generasi;
   }
 
@@ -457,14 +457,14 @@
     /* --- langkah pembuka ronde: zoom ke simpul, lalu masuk area kerja --- */
     if (m.awal) {
       alphaFokus = 0;
-      await terbang(kfFokus(m.ronde), 560, e => {
+      await terbang(kfFokus(m.ronde), 1200, e => {
         orangAktif.forEach(t => t.s = 1 - e);
         alphaDaftar = 1 - e;
         alphaKerja = 1 - e;
         alphaFokus = e;
       });
       if (g !== generasi) return;
-      await tunda(300);
+      await tunda(500);
       if (g !== generasi) return;
 
       susunAktif(m.ronde);
@@ -472,12 +472,12 @@
       pratinjau = []; alphaHasil = 0; hasilId = null;
       alphaPemenang = 0; barisAlpha = [1, 1, 1];
       alphaKerja = 0; alphaDaftar = 0;
-      await terbang(kfKerja(m.ronde, false), 620, e => { alphaKerja = clamp01(e * 1.8); });
+      await terbang(kfKerja(m.ronde, false), 1300, e => { alphaKerja = clamp01(e * 1.8); });
       if (g !== generasi) return;
 
       await Promise.all([
-        tumbuh(orangAktif, 280, 12),
-        pudar(460, e => { alphaDaftar = e; }),
+        tumbuh(orangAktif, 420, 16),
+        pudar(700, e => { alphaDaftar = e; }),
       ]);
       if (g !== generasi) return;
       alphaKerja = 1;
@@ -494,7 +494,7 @@
         Math.abs(kamera.cx - tujuan.cx) > 0.001 ||
         Math.abs(kamera.cy - tujuan.cy) > 0.001;
       if (beda) {
-        await terbang(tujuan, 500);
+        await terbang(tujuan, 800);
         if (g !== generasi) return;
       }
       if (m.arsip !== null) {
@@ -505,9 +505,9 @@
       alphaHasil = 0;
       garisProgres = 0;
       /* garis siku dan kotak anak muncul dulu, baru titik meluncur masuk */
-      await pudar(260, e => { alphaHasil = e; garisProgres = e; });
+      await pudar(450, e => { alphaHasil = e; garisProgres = e; });
       if (g !== generasi) return;
-      await luncur(pratinjau, 520, 14);
+      await luncur(pratinjau, 750, 18);
       if (g !== generasi) return;
       alphaHasil = 1;
       fase = 4; perbarui(); gambar();
@@ -522,16 +522,16 @@
       }
       alphaPemenang = 0;
       perbarui(); gambar();
-      await pudar(240, e => { alphaPemenang = e; });
+      await pudar(400, e => { alphaPemenang = e; });
       if (g !== generasi) return;
-      await tunda(800);                 // beat: pemenang ditahan sebelum pohon
+      await tunda(1400);                 // beat: pemenang ditahan sebelum pohon
       if (g !== generasi) return;
 
       const ids = idsPohon(s);
       const baru = tumbuhPohon(ids);
       /* area kerja ikut memudar selama kamera terbang, supaya baris dan
          kotak yang tinggal tidak terlihat menumpuk di tepi frame pohon. */
-      await terbang(kfPohon(ids, false), 680, e => {
+      await terbang(kfPohon(ids, false), 1500, e => {
         alphaKerja = 1 - e;
         alphaDaftar = 1 - e;
         baru.node.forEach((id, i) => { alphaPohon[id] = clamp01((e - i * 0.14) / 0.5); });
@@ -547,7 +547,7 @@
     /* --- langkah akhir: tarik kamera keluar sambil banner muncul --- */
     if (m.akhir) {
       const ids = idsPohon(s);
-      await terbang(kfPohon(ids, true), 560, e => { bannerAlpha = e; });
+      await terbang(kfPohon(ids, true), 1400, e => { bannerAlpha = e; });
       if (g !== generasi) return;
       bannerAlpha = 1;
       fase = 4; perbarui(); gambar();
@@ -583,10 +583,9 @@
     perbarui();
     if (langkah >= MAKS_LANGKAH) await keLangkah(0, true);
     while (putar && langkah < MAKS_LANGKAH) {
-      const t0 = performance.now();
       await keLangkah(langkah + 1);
       if (!putar) break;
-      await tunda(Math.max(0, 1800 - (performance.now() - t0)));
+      await tunda(300);                  // rehat pendek setelah animasi selesai
     }
     putar = false;
     perbarui();
