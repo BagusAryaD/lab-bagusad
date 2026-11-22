@@ -3,7 +3,7 @@
 // Filter opsional: node alat/tangkap.mjs struktur-data
 //
 // Cara kerja: buka halaman materi di Chrome headless, biarkan figur kanvas berjalan,
-// lalu komposisi ulang kanvas figur itu ke bingkai 1200×900 dengan warna kertas situs.
+// lalu komposisi ulang kanvas figur itu ke bingkai 1200×750 dengan warna kertas situs.
 // Hasilnya pratinjau bersih tanpa tombol dan teks kendali, seragam untuk semua kartu.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
@@ -228,7 +228,7 @@ for (const t of pilih) {
     }
 
     const hasil = await kirim('Runtime.evaluate', {
-      expression: komposisi(t.kanvas, 1200, 900, 28),
+      expression: komposisi(t.kanvas, 1200, 750, 28),
       returnByValue: true,
     });
     const nilai = hasil.result.value;
@@ -242,7 +242,7 @@ for (const t of pilih) {
       : t.keluar;
     const isi = Buffer.from(nilai.data.split(',')[1], 'base64');
     writeFileSync(join(akar, berkas), isi);
-    console.log('✓ ' + berkas + ' (' + Math.round(isi.length / 1024) + ' KB, 1200×900)');
+    console.log('✓ ' + berkas + ' (' + Math.round(isi.length / 1024) + ' KB, 1200×750)');
   }
 }
 

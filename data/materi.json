@@ -14,12 +14,12 @@
     {
       "slug": "machine-learning",
       "nama": "Machine Learning",
-      "ringkas": "Metode prediksi yang dibangun dari data, dari pohon keputusan sampai pengendalian kompleksitasnya."
+      "ringkas": "Metode prediksi yang dibangun dari data."
     },
     {
       "slug": "mixed-model",
       "nama": "Mixed Model",
-      "ringkas": "Intuisi tentang random intercept dan random slope untuk data berklaster."
+      "ringkas": "Pemodelan untuk clustered data."
     }
   ],
   "materi": [

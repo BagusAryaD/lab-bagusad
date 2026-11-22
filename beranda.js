@@ -176,7 +176,7 @@
       img.src = m.sampul;
       img.alt = alt;
       img.width = 1200;
-      img.height = 900;
+      img.height = 750;
       img.loading = 'lazy';
       img.decoding = 'async';
       img.className = 'sampul-terang';
@@ -187,7 +187,7 @@
         gelap.src = m.sampul_gelap;
         gelap.alt = alt;
         gelap.width = 1200;
-        gelap.height = 900;
+        gelap.height = 750;
         gelap.loading = 'lazy';
         gelap.decoding = 'async';
         gelap.className = 'sampul-gelap';
@@ -232,6 +232,13 @@
 
     const topik = Array.isArray(data.topik) ? data.topik : [];
     const materi = (Array.isArray(data.materi) ? data.materi : []).filter(m => m && m.status !== 'draft');
+
+    // urutkan topik berdasarkan tanggal materi terbarunya, terbaru di atas.
+    // tanggal berformat ISO (YYYY-MM-DD), jadi cukup dibandingkan sebagai string
+    const terbaru = (slug) => materi
+      .filter(m => m.topik === slug && m.tanggal)
+      .reduce((maks, m) => m.tanggal > maks ? m.tanggal : maks, '');
+    topik.sort((a, b) => terbaru(b.slug).localeCompare(terbaru(a.slug)));
     wadah.replaceChildren();
 
     // kelompokkan sekali di awal; filter sesudahnya hanya menyembunyikan kartu,
@@ -245,11 +252,14 @@
 
       const blok = el('section', 'topik');
       const kepala = el('div', 'topik-kepala');
+      const teks = el('div', 'topik-teks');
       const nama = el('h3', 'topik-nama', t.nama);
+      nama.append(el('span', 'topik-hitung', '\u00B7 ' + isi.length + ' materi'));
       nama.id = 'topik-' + t.slug;
       blok.setAttribute('aria-labelledby', nama.id);
-      kepala.append(nama);
-      if (t.ringkas) kepala.append(el('p', 'topik-ringkas', t.ringkas));
+      teks.append(nama);
+      if (t.ringkas) teks.append(el('p', 'topik-ringkas', t.ringkas));
+      kepala.append(teks);
       blok.append(kepala);
 
       const daftar = el('div', 'daftar-kartu');
