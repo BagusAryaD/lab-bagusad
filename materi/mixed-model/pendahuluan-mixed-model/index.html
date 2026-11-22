@@ -18,6 +18,8 @@
 <link rel="stylesheet" href="../../../kit/situs.css">
 <style>
   .tabel-gulir{overflow-x:auto;margin:1.5em 0;border:1px solid var(--garis);border-radius:var(--radius);background:var(--kertas-2)}
+  .geser-x{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  #cv-struktur{min-width:680px}
   table.tabel{width:100%;border-collapse:collapse;font:.84rem/1.55 var(--sans);color:var(--tinta-2);min-width:660px}
   table.tabel.lebar{min-width:660px}
   table.tabel th,table.tabel td{padding:9px 11px;border-bottom:1px solid var(--garis);text-align:left;vertical-align:middle}
@@ -109,7 +111,7 @@
   <div class="fig" id="fig-struktur">
     <h3 class="fig-judul">Struktur pengamatan pada data berklaster dan pengukuran berulang</h3>
     <p class="fig-ket" style="margin:0 0 12px">Pilih bentuk datanya untuk melihat susunan level pengamatannya. Arahkan atau klik kotak induknya untuk menyorot satu <i>cluster</i>.</p>
-    <canvas id="cv-struktur" style="aspect-ratio:2.1/1" role="img" aria-label="Diagram level pengamatan: mode data berklaster menampilkan tiga negara (level 2) yang masing-masing memuat siswa (level 1), mode pengukuran berulang menampilkan tiga siswa (level 2) yang masing-masing diamati pada tiga waktu (level 1), mode tersarang menampilkan waktu (level 1) tersarang dalam siswa (level 2) yang tersarang dalam negara (level 3)"></canvas>
+    <div class="geser-x"><canvas id="cv-struktur" style="aspect-ratio:2.1/1" role="img" aria-label="Diagram level pengamatan: mode data berklaster menampilkan tiga negara (level 2) yang masing-masing memuat siswa (level 1), mode pengukuran berulang menampilkan tiga siswa (level 2) yang masing-masing diamati pada tiga waktu (level 1), mode tersarang menampilkan waktu (level 1) tersarang dalam siswa (level 2) yang tersarang dalam negara (level 3)"></canvas></div>
     <div class="ctl" role="group" aria-label="Pilih bentuk data">
       <button type="button" class="btn p" id="s-klaster" aria-pressed="true">Data berklaster</button>
       <button type="button" class="btn" id="s-ulang" aria-pressed="false">Pengukuran berulang</button>

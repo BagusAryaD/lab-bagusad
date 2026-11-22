@@ -1,10 +1,10 @@
 /* widgets/struktur.js: pohon level pengamatan untuk data berklaster,
    pengukuran berulang, dan gabungan keduanya (waktu tersarang dalam siswa,
-   siswa tersarang dalam negara). Di layar lebar semua pengamatan disusun
-   ke samping di bawah induknya; di layar sempit mode dua level kembali ke
-   kolom ke bawah. Node muncul bertahap saat mode diganti, dan kotak induk
-   bisa diarahkan atau diklik untuk menyorot cluster-nya. Animasi dilewati
-   bila pengguna lebih menyukai gerak minimal. */
+   siswa tersarang dalam negara). Semua pengamatan disusun ke samping di
+   bawah induknya; di layar sempit kanvas memakai lebar minimum dan digulir
+   ke samping oleh .geser-x. Node muncul bertahap saat mode diganti, dan
+   kotak induk bisa diarahkan atau diklik untuk menyorot cluster-nya.
+   Animasi dilewati bila pengguna lebih menyukai gerak minimal. */
 (() => {
   const { warna, kanvas } = Kit, $ = s => document.querySelector(s);
   const FONT = '"IBM Plex Sans", sans-serif';
@@ -59,30 +59,21 @@
     c.stroke();
   }
 
-  /* pilih akar yang digambar: di layar sempit, mode tersarang disederhanakan */
-  function susun(kecil) {
-    const akar = MODE[mode].akar;
-    return kecil && mode === 'tersarang' ? akar.slice(0, 1) : akar;
-  }
-
   /* ukuran node, jarak antarbaris, dan tinggi total kanvas */
-  function tata(akar, w, kecil) {
+  function tata(akar, w) {
     const depth = akar[0].anak[0].anak ? 3 : 2;
-    const vertikal = kecil && depth === 2;
-    const Lm = kecil ? 44 : 54, Rm = 12, Atas = 14, Bawah = 12;
-    const boxH = kecil ? 40 : depth === 3 ? 44 : 48;
-    const midH = depth === 3 ? (kecil ? 26 : 28) : 0;
-    const daunH = depth === 3 ? (kecil ? 20 : 22) : kecil ? 26 : 30;
-    const jarak = depth === 3 ? (kecil ? 34 : 46) : kecil ? 18 : 64;
-    const tinggi = Atas + boxH + jarak +
-      (depth === 3 ? midH + jarak : 0) +
-      (vertikal ? 3 * daunH + 2 * 12 : daunH) + Bawah;
-    return { depth, vertikal, Lm, Rm, W: w - Lm - Rm, Atas, boxH, midH, daunH, jarak, tinggi };
+    const Lm = 54, Rm = 12, Atas = 14, Bawah = 12;
+    const boxH = depth === 3 ? 44 : 48;
+    const midH = depth === 3 ? 28 : 0;
+    const daunH = depth === 3 ? 22 : 30;
+    const jarak = depth === 3 ? 46 : 64;
+    const tinggi = Atas + boxH + jarak + (depth === 3 ? midH + jarak : 0) + daunH + Bawah;
+    return { depth, Lm, Rm, W: w - Lm - Rm, Atas, boxH, midH, daunH, jarak, tinggi };
   }
 
   /* posisi tiap node: daun diberi slot berurutan, induk mengerang di tengah anak-anaknya */
   function bangun(akar, T) {
-    const { depth, vertikal, Lm, W, Atas, boxH, midH, daunH, jarak } = T;
+    const { depth, Lm, W, Atas, boxH, midH, daunH, jarak } = T;
     const yKotak = Atas + boxH / 2;
     const yMid = Atas + boxH + jarak + midH / 2;
     const yDaun = Atas + boxH + jarak + (depth === 3 ? midH + jarak : 0) + daunH / 2;
@@ -92,39 +83,29 @@
       n._lvl = lvl; n._akar = akarIdx;
     };
 
-    if (vertikal) {
-      const kolom = W / akar.length;
-      akar.forEach((a, i) => {
-        const cx = Lm + kolom * (i + .5);
-        tag(a, cx, yKotak, Math.min(150, kolom * .74), boxH, depth, i);
-        a.anak.forEach((b, j) =>
-          tag(b, cx, yDaun + j * (daunH + 12), Math.min(110, kolom * .68), daunH, 1, i));
-      });
-    } else {
-      const daun = [];
-      akar.forEach(a => {
-        a._i = akar.indexOf(a);
-        if (a.anak[0].anak) a.anak.forEach(m => m.anak.forEach(d => daun.push({ d, a, m })));
-        else a.anak.forEach(d => daun.push({ d, a }));
-      });
-      const n = daun.length, slot = W / n;
-      const elW = Math.min(depth === 3 ? 62 : 84, slot * .86);
-      daun.forEach((o, k) => tag(o.d, Lm + slot * (k + .5), yDaun, elW, daunH, 1, o.a._i));
-      if (depth === 3) {
-        akar.forEach(a => a.anak.forEach(m => {
-          const xs = m.anak.map(d => d._x);
-          const kiri = Math.min(...xs), kanan = Math.max(...xs);
-          tag(m, (kiri + kanan) / 2, yMid,
-            Math.min(120, Math.max(76, (kanan - kiri) * .62 + 18)), midH, 2, a._i);
-        }));
-      }
-      akar.forEach(a => {
-        const xs = a.anak.map(m => m._x);
+    const daun = [];
+    akar.forEach(a => {
+      a._i = akar.indexOf(a);
+      if (a.anak[0].anak) a.anak.forEach(m => m.anak.forEach(d => daun.push({ d, a })));
+      else a.anak.forEach(d => daun.push({ d, a }));
+    });
+    const n = daun.length, slot = W / n;
+    const elW = Math.min(depth === 3 ? 62 : 84, slot * .86);
+    daun.forEach((o, k) => tag(o.d, Lm + slot * (k + .5), yDaun, elW, daunH, 1, o.a._i));
+    if (depth === 3) {
+      akar.forEach(a => a.anak.forEach(m => {
+        const xs = m.anak.map(d => d._x);
         const kiri = Math.min(...xs), kanan = Math.max(...xs);
-        tag(a, (kiri + kanan) / 2, yKotak,
-          Math.min(depth === 3 ? 160 : 150, Math.max(80, (kanan - kiri) * .5 + 24)), boxH, depth, a._i);
-      });
+        tag(m, (kiri + kanan) / 2, yMid,
+          Math.min(120, Math.max(76, (kanan - kiri) * .62 + 18)), midH, 2, a._i);
+      }));
     }
+    akar.forEach(a => {
+      const xs = a.anak.map(m => m._x);
+      const kiri = Math.min(...xs), kanan = Math.max(...xs);
+      tag(a, (kiri + kanan) / 2, yKotak,
+        Math.min(depth === 3 ? 160 : 150, Math.max(80, (kanan - kiri) * .5 + 24)), boxH, depth, a._i);
+    });
 
     /* urutan kemunculan animasi: dari level atas ke bawah */
     const lapisan = l => akar.flatMap(a => {
@@ -136,10 +117,9 @@
     for (let l = depth; l >= 1; l--) lapisan(l).forEach(n => n._urut = u++);
 
     /* posisi penanda level di kiri */
-    const yLvl1 = vertikal ? yDaun + (2 * (daunH + 12)) / 2 : yDaun;
     T.baris = [[yKotak, depth]];
     if (depth === 3) T.baris.push([yMid, 2]);
-    T.baris.push([yLvl1, 1]);
+    T.baris.push([yDaun, 1]);
   }
 
   function gambar() {
@@ -147,9 +127,8 @@
     if (!cv) return;
     const lebar = cv.clientWidth;
     if (!lebar) return;
-    const kecil = lebar < 430;
-    const akar = susun(kecil);
-    const T = tata(akar, lebar, kecil);
+    const akar = MODE[mode].akar;
+    const T = tata(akar, lebar);
     cv.style.aspectRatio = lebar + ' / ' + T.tinggi;
     const { c, w, h } = kanvas(cv);
     if (!w) return;
@@ -161,8 +140,7 @@
     }));
 
     const ket = $('#s-ket');
-    const teks = M.ket + (kecil && mode === 'tersarang' ? ' Satu negara ditampilkan agar muat di layar kecil.' : '');
-    if (ket && ket.textContent !== teks) ket.textContent = teks;
+    if (ket && ket.textContent !== M.ket) ket.textContent = M.ket;
 
     c.clearRect(0, 0, w, h);
     c.textAlign = 'center';
@@ -218,7 +196,7 @@
         kotakPath(c, n._x - n._w / 2, n._y - n._h / 2 + dy, n._w, n._h, 8);
         c.fill(); c.stroke();
         c.fillStyle = C.tinta;
-        c.font = `600 ${kecil ? 10 : 11.5}px ${FONT}`;
+        c.font = `600 11.5px ${FONT}`;
       } else {
         const warnaE = T.depth === 3 && n._lvl === 1 ? C.hijau : C.emas;
         c.fillStyle = warnaE + '22';
@@ -229,7 +207,7 @@
         else c.rect(n._x - n._w / 2, n._y + dy - n._h / 2, n._w, n._h);
         c.fill(); c.stroke();
         c.fillStyle = C.tinta;
-        c.font = `${kecil ? 8.5 : T.depth === 3 ? 9 : 10}px ${FONT}`;
+        c.font = `${T.depth === 3 ? 9 : 10}px ${FONT}`;
       }
       c.fillText(n.label, n._x, n._y + dy);
       c.globalAlpha = 1;
@@ -245,7 +223,7 @@
 
     /* penanda level di sisi kiri tiap baris */
     c.fillStyle = C.redup;
-    c.font = `600 ${kecil ? 8.5 : 9.5}px ${FONT}`;
+    c.font = `600 9.5px ${FONT}`;
     c.textAlign = 'right';
     T.baris.forEach(([y, lvl]) => c.fillText('level ' + lvl, T.Lm - 10, y));
     c.textAlign = 'center';
