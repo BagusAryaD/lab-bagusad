@@ -8,6 +8,10 @@ dependensi: Node dan Chrome/Edge untuk alat bantu.
 Dokumentasi isi dan struktur ada di `README.md`. Berkas ini hanya memuat hal
 yang mudah salah kalau tidak tahu.
 
+Menambah materi punya prosedur sendiri di `PANDUAN-MATERI.md`: cara membaca
+draft di `draft_materi/`, kerangka halaman, aturan widget, dan langkah
+verifikasi. Baca berkas itu dulu, jangan telusuri `kit/*` dari nol.
+
 ## Perintah
 
 ```
@@ -81,6 +85,9 @@ layar dari `alat/pratinjau.mjs`.
   `data.topik`.
 - Widget materi ada di `materi/<topik>/<slug>/widgets/*.js`, dimuat setelah
   `kit.js`, dan wajib menggambar ulang pada `resize` dan event `tema`.
+- Materi baru butuh dua hal di luar folder materinya: entri di
+  `data/materi.json` dan entri di array `sasaran` `alat/tangkap.mjs` sebelum
+  sampulnya bisa digenerate. Rinciannya di `PANDUAN-MATERI.md`.
 
 ## Konvensi
 

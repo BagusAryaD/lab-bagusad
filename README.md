@@ -13,6 +13,7 @@ Kalau ada masukan atau saran materi, contact aja.
 - **materi/<topik>/<slug>/** — Halaman materi masing-masing, boleh ada folder widgets/ untuk figur interaktif.
 - **alat/** — Script bantu: periksa.mjs (validasi data), tangkap.mjs (buat sampul kartu), pratinjau.mjs (tangkapan layar).
 - **aset/** — Sampul kartu materi, hasil generate dari alat/tangkap.mjs.
+- **PANDUAN-MATERI.md** — Prosedur menambah materi, dari membaca draft sampai verifikasi.
 
 ## Materi saat ini
 
@@ -24,38 +25,12 @@ Ada dua topik: **Metode Simulasi Statistika** dan **Struktur Data**.
 
 ## Menambah materi
 
-1. Buat folder `materi/<topik>/<slug>/` berisi `index.html` dan `widgets/` kalau perlu. Copas pola dari materi yang sudah ada.
-2. Daftarkan di `data/materi.json`, di array `materi`. Contoh:
+Prosedur lengkapnya ada di **[PANDUAN-MATERI.md](PANDUAN-MATERI.md)**: cara membaca draft di `draft_materi/`, kerangka halaman, aturan tabel dan widget, isian `data/materi.json`, sampai langkah verifikasi. Singkatnya:
 
-```json
-{
-  "slug": "slug-materi",
-  "topik": "metode-simulasi-statistika",
-  "judul": "Judul Materi",
-  "bagian": 3,
-  "subjudul": "Subjudul singkat",
-  "ringkas": "Satu kalimat untuk kartu di beranda.",
-  "berkas": "materi/metode-simulasi-statistika/slug-materi/index.html",
-  "sampul": "aset/sampul-slug-materi.jpg",
-  "sampul_gelap": "aset/sampul-slug-materi-gelap.jpg",
-  "sampul_alt": "Deskripsi isi gambar sampul untuk pembaca layar",
-  "tujuan": ["..."],
-  "sumber": ["..."],
-  "kit": "0.4",
-  "status": "selesai",
-  "tanggal": "2026-11-19"
-}
-```
-
-Topik baru ditambah di array `topik`. Materi dengan `status: "draft"` tidak muncul di beranda.
-
-3. Jalankan pemeriksa:
-
-```
-node alat/periksa.mjs
-```
-
-Pemeriksa memastikan berkas ada, slug tidak ganda, topik dikenal, dan semua materi terdaftar.
+1. Buat folder `materi/<topik>/<slug>/` berisi `index.html` dan `widgets/` kalau perlu.
+2. Daftarkan di `data/materi.json` (array `materi`, topik baru di array `topik`). Materi dengan `status: "draft"` tidak muncul di beranda.
+3. Tambahkan entri sampul di `alat/tangkap.mjs`, lalu jalankan `node alat/tangkap.mjs <slug>`.
+4. Jalankan `node alat/periksa.mjs` untuk memastikan berkas ada, slug tidak ganda, topik dikenal, dan semua materi terdaftar.
 
 ## Sampul kartu
 
