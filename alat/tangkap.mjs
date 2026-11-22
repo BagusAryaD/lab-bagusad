@@ -57,6 +57,12 @@ const sasaran = [
     tunggu: 1800,
     keluar: 'aset/sampul-pengantar-decision-tree.jpg',
   },
+  {
+    halaman: 'materi/mixed-model/pendahuluan-mixed-model/index.html',
+    kanvas: '#cv-regresi-campuran',
+    tunggu: 1800,
+    keluar: 'aset/sampul-pendahuluan-mixed-model.jpg',
+  },
 ];
 
 const pilih = saring

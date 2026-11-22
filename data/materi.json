@@ -15,6 +15,11 @@
       "slug": "machine-learning",
       "nama": "Machine Learning",
       "ringkas": "Metode prediksi yang dibangun dari data, dari pohon keputusan sampai pengendalian kompleksitasnya."
+    },
+    {
+      "slug": "mixed-model",
+      "nama": "Mixed Model",
+      "ringkas": "Intuisi tentang random intercept dan random slope untuk data berklaster."
     }
   ],
   "materi": [
@@ -114,6 +119,33 @@
       "sampul_alt": "Pohon keputusan kedalaman dua pada 714 penumpang Titanic: akar menanyakan apakah laki-laki, lalu cabang usia dan kelas tiket, dengan empat daun berisi prediksi selamat atau tidak selamat",
       "status": "selesai",
       "tanggal": "2026-11-21"
+    },
+    {
+      "slug": "pendahuluan-mixed-model",
+      "topik": "mixed-model",
+      "judul": "Pendahuluan Mixed Model",
+      "subjudul": "Random intercept dan random slope pada data berklaster",
+      "ringkas": "Kenapa asumsi independensi gugur pada data berklaster, bagaimana regresi biasa menyesatkan, dan bagaimana membedakan random intercept dan random slope dari bentuk garisnya.",
+      "berkas": "materi/mixed-model/pendahuluan-mixed-model/index.html",
+      "tujuan": [
+        "Menjelaskan mengapa asumsi independensi sulit dipertahankan pada data berklaster dan pengukuran berulang",
+        "Menunjukkan bagaimana regresi biasa pada data berklaster dapat menghasilkan arah hubungan yang berbeda dari hubungan di dalam tiap cluster",
+        "Membedakan fixed effect dan random effect dalam bentuk model y_i = X_i beta + Z_i b_i + epsilon_i",
+        "Mengenali random intercept, random slope, dan keduanya dari grafik garis antar cluster",
+        "Menilai kapan sebuah peubah penjelas layak diberi random slope"
+      ],
+      "sumber": [
+        "Fitzmaurice, Laird, & Ware (2011), Applied Longitudinal Analysis",
+        "Gelman & Hill (2007), Data Analysis Using Regression and Multilevel/Hierarchical Models",
+        "Raudenbush & Bryk (2002), Hierarchical Linear Models",
+        "Snijders & Bosker (2012), Multilevel Analysis"
+      ],
+      "kit": "0.4",
+      "sampul": "aset/sampul-pendahuluan-mixed-model.jpg",
+      "sampul_gelap": "aset/sampul-pendahuluan-mixed-model-gelap.jpg",
+      "sampul_alt": "Tiga garis regresi menaik untuk Negara A, Negara B, dan Negara I pada sebaran titik jam belajar terhadap skor asesmen matematika, dengan titik intercept tiap garis di sumbu x = 0",
+      "status": "draft",
+      "tanggal": "2026-11-22"
     }
   ]
 }

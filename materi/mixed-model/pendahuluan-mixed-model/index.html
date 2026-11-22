@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="id" data-tema="terang">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pendahuluan Mixed Model · Mixed Model</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231A5276'/><path d='M4 25c3.6 0 5-1.2 6.1-6.7C11 13 12.8 8.5 15.9 8.5s4.9 4.5 5.8 9.8C22.8 23.8 24.2 25 27.8 25' fill='none' stroke='%23F9F8F5' stroke-width='2.4' stroke-linecap='round'/></svg>">
+<script>
+  try {
+    var t = localStorage.getItem('tema');
+    if (t ? t === 'gelap' : matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.dataset.tema = 'gelap';
+    }
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="../../../kit/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../../../kit/kit.css">
+<link rel="stylesheet" href="../../../kit/situs.css">
+<style>
+  .tabel-gulir{overflow-x:auto;margin:1.5em 0;border:1px solid var(--garis);border-radius:var(--radius);background:var(--kertas-2)}
+  table.tabel{width:100%;border-collapse:collapse;font:.84rem/1.55 var(--sans);color:var(--tinta-2);min-width:660px}
+  table.tabel.lebar{min-width:660px}
+  table.tabel th,table.tabel td{padding:9px 11px;border-bottom:1px solid var(--garis);text-align:left;vertical-align:middle}
+  table.tabel th{font-weight:600;color:var(--tinta-redup);font-size:.7rem;letter-spacing:.03em;line-height:1.4;vertical-align:bottom}
+  table.tabel td:first-child{color:var(--tinta)}
+  table.tabel td.n{font-family:var(--mono);font-size:.8rem;text-align:center;white-space:nowrap;color:var(--tinta)}
+  table.tabel tbody tr:hover{background:color-mix(in srgb,var(--tinta) 3%,transparent)}
+  table.tabel tbody tr.jeda td{color:var(--tinta-redup);letter-spacing:.2em;padding-top:2px;padding-bottom:2px;border-bottom:0}
+  table.tabel tr:last-child td{border-bottom:0}
+  .ctl[hidden]{display:none}
+  .fig-kuis .btn:disabled{pointer-events:none}
+  .btn.kunci{border-color:var(--hijau);color:var(--hijau)}
+  .btn.benar{background:var(--hijau);border-color:var(--hijau);color:var(--kertas);animation:kuis-benar .5s ease}
+  .btn.salah{border-color:var(--aksen-2);color:var(--aksen-2);animation:kuis-salah .45s ease}
+  .k-umpan,#k-skor{opacity:0;transform:translateY(4px);transition:opacity var(--gerak-cepat),transform var(--gerak-cepat)}
+  .k-umpan.tampil,#k-skor.tampil{opacity:1;transform:none}
+  @keyframes kuis-benar{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+  @keyframes kuis-salah{0%,100%{transform:none}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+  @media(prefers-reduced-motion:reduce){.btn.benar,.btn.salah{animation:none}.k-umpan,#k-skor{transition:none}}
+  .hero h1{font-size:clamp(1.85rem,4.4vw,3.3rem);line-height:1.1;max-width:24ch;text-wrap:balance}
+  .hero .sub{font-size:1.15rem}
+  @media(max-width:700px){
+    #cv-regresi-biasa,#cv-regresi-campuran,#cv-varian{aspect-ratio:1.35/1!important}
+    .cv-kuis{aspect-ratio:1.35/1!important}
+    table.tabel{font-size:.77rem;min-width:620px}
+    table.tabel th,table.tabel td{padding:7px 7px}
+    table.tabel td.n{font-size:.74rem}
+  }
+</style>
+</head>
+<body class="materi" data-mk="mixed-model">
+<a class="lewati" href="#utama">Lewati ke konten</a>
+<div id="progres"></div>
+
+<header class="situs">
+  <div class="situs-isi">
+    <a class="merek" href="../../../index.html" aria-label="Bagus's Lab, beranda">
+      <span class="merek-tanda" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 26c4 0 5.6-1.3 6.8-7.4C11 13.2 12.9 8 16 8s5 5.2 6.2 10.6C23.4 24.7 25 26 29 26"/></svg>
+      </span>
+      <span class="merek-teks">Bagus's Lab</span>
+    </a>
+    <nav class="situs-nav" aria-label="Navigasi utama">
+      <a href="../../../index.html#arsip" aria-current="true">Lab</a>
+      <a href="../../../profil.html">Profile</a>
+    </nav>
+    <button id="tema" aria-label="Aktifkan tema gelap" title="Ganti tema">
+      <svg class="ikon-matahari" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
+      <svg class="ikon-bulan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.6 8.6 0 0 1 9.8 3.5a8.6 8.6 0 1 0 10.7 10.7z"/></svg>
+    </button>
+  </div>
+</header>
+
+<header class="hero">
+  <div class="label-bagian">Mixed Model</div>
+  <h1>Pendahuluan Mixed Model</h1>
+  <p class="sub">Random intercept dan random slope pada data berklaster</p>
+  <p class="identitas">Bagus Arya Dwipangga · Statistika · UNJ</p>
+</header>
+
+<main class="artikel" id="utama">
+
+<section class="muncul">
+  <div class="label-bagian">01 · Pendahuluan</div>
+  <h2>Asumsi independensi</h2>
+  <p><i>Mixed model</i> digunakan ketika pengamatan pada data tidak independen atau saling berkorelasi.</p>
+  <p>Independensi di sini berlaku antar pengamatan dalam satu peubah, bukan antara peubah penjelas dan peubah respons. Korelasi antara \(X\) dan \(Y\) justru menjadi sasaran analisis. Yang dimaksud pengamatan yang tidak independen adalah, misalnya, skor siswa pertama dan skor siswa kedua yang saling berkorelasi setelah pengaruh \(X\) diperhitungkan.</p>
+  <p>Pada regresi linear sederhana, galat \(\varepsilon_i\) diasumsikan independen: galat satu pengamatan tidak berkorelasi dengan galat pengamatan lain, atau \(\operatorname{Cov}(\varepsilon_i, \varepsilon_{i'}) = 0\) untuk \(i \neq i'\).</p>
+  <div class="math">$$Y_i = \beta_0 + \beta_1 X_i + \varepsilon_i, \qquad \varepsilon_i \sim N(0, \sigma^2) \text{ dan saling independen}$$</div>
+  <p>Karena adanya asumsi ini, regresi linear biasa tidak dapat digunakan pada data yang pengamatannya tidak independen.</p>
+  <p>Asumsi independensi sulit dipertahankan bila pengamatan berbagi sumber yang sama, misalnya:</p>
+  <ul>
+    <li>subjek yang sama diukur berulang kali,</li>
+    <li>anggota keluarga yang sama,</li>
+    <li>siswa yang diajar oleh guru yang sama atau bersekolah di sekolah yang sama,</li>
+    <li>penduduk yang tinggal di wilayah yang sama.</li>
+  </ul>
+  <p>Pengamatan yang berbagi sumber yang sama cenderung mirip satu sama lain, sehingga galatnya berkorelasi. Untuk data seperti ini digunakan <i>mixed model</i>, yang memodelkan korelasi tersebut secara eksplisit. Model ini juga dikenal sebagai <i>hierarchical linear model</i>, <i>multilevel model</i>, dan <i>mixed-effects model</i>. Istilah-istilah tersebut sering dipakai bergantian, dan halaman ini memakai istilah <i>mixed model</i>.</p>
+  <p>Halaman ini membahas empat hal secara berurutan: bentuk data yang tidak independen, alasan regresi biasa tidak memadai pada data tersebut, bentuk umum <i>mixed model</i>, dan dua jenis variasi antar kelompok yang dapat dimodelkan, yaitu <i>random intercept</i> dan <i>random slope</i>.</p>
+  <div class="temuan">Regresi linear biasa mengasumsikan galat yang independen, sedangkan pengamatan yang berbagi sumber yang sama umumnya tidak independen.</div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">02 · Data berklaster dan pengukuran berulang</div>
+  <h2>Pengamatan yang berbagi sumber yang sama</h2>
+  <p>Sekelompok pengamatan yang berbagi sumber yang sama disebut <i>cluster</i>. Pada data berklaster, setiap <i>cluster</i> memuat beberapa pengamatan, dan sebuah peubah menandai <i>cluster</i> asal tiap pengamatan. Pengamatan ke-\(j\) pada <i>cluster</i> ke-\(i\) ditulis \(Y_{ij}\), dengan \(i = 1, 2, \dots, N\) dan \(j = 1, 2, \dots, n_i\).</p>
+  <p>Dua pengamatan \(j \neq j'\) pada <i>cluster</i> yang sama memiliki galat yang berkorelasi, yaitu \(\operatorname{Cov}(\varepsilon_{ij}, \varepsilon_{ij'}) \neq 0\), sehingga asumsi independensi tidak terpenuhi. Dua bentuk data yang membentuk <i>cluster</i> dibahas berikut.</p>
+
+  <div class="fig" id="fig-struktur">
+    <h3 class="fig-judul">Struktur pengamatan pada data berklaster dan pengukuran berulang</h3>
+    <p class="fig-ket" style="margin:0 0 12px">Pilih bentuk datanya untuk melihat susunan level pengamatannya. Arahkan atau klik kotak induknya untuk menyorot satu <i>cluster</i>.</p>
+    <canvas id="cv-struktur" style="aspect-ratio:2.1/1" role="img" aria-label="Diagram level pengamatan: mode data berklaster menampilkan tiga negara (level 2) yang masing-masing memuat siswa (level 1), mode pengukuran berulang menampilkan tiga siswa (level 2) yang masing-masing diamati pada tiga waktu (level 1), mode tersarang menampilkan waktu (level 1) tersarang dalam siswa (level 2) yang tersarang dalam negara (level 3)"></canvas>
+    <div class="ctl" role="group" aria-label="Pilih bentuk data">
+      <button type="button" class="btn p" id="s-klaster" aria-pressed="true">Data berklaster</button>
+      <button type="button" class="btn" id="s-ulang" aria-pressed="false">Pengukuran berulang</button>
+      <button type="button" class="btn" id="s-tersarang" aria-pressed="false">Tersarang: waktu dalam siswa dalam negara</button>
+    </div>
+    <p class="fig-ket" id="s-ket">Tiap negara (kotak) memuat beberapa siswa (elips). Siswa dari negara yang sama berbagi sumber yang sama, sehingga skornya cenderung berkorelasi.</p>
+  </div>
+
+  <h3>Data berklaster</h3>
+  <p>Contoh data berklaster adalah skor asesmen matematika siswa dari beberapa negara. Siswa dari negara yang sama mengikuti sistem pendidikan yang sama, sehingga skor mereka cenderung lebih mirip dibandingkan dengan skor siswa dari negara lain. Setiap negara adalah satu <i>cluster</i>, dan setiap siswa adalah satu pengamatan di dalam <i>cluster</i> tersebut.</p>
+  <p>Dalam format panjang (<i>long format</i>), setiap baris adalah satu siswa dan satu kolom menyimpan <i>cluster</i>-nya. Tabel berikut menunjukkan sebagian data ilustrasi yang dipakai pada halaman ini: 15 siswa dari tiap negara pada 3 negara (A, B, dan I), dengan jam belajar per minggu (\(X_{ij}\)) dan skor asesmen matematika skala 0 sampai 100 (\(Y_{ij}\)).</p>
+  <div class="tabel-gulir">
+    <table class="tabel">
+      <thead>
+        <tr><th>Negara</th><th>Siswa<br>(\(j\))</th><th>Jam belajar<br>(\(X_{ij}\), jam per minggu)</th><th>Skor asesmen<br>(\(Y_{ij}\))</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>A</td><td class="n">1</td><td class="n">4,8</td><td class="n">77,1</td></tr>
+        <tr><td>A</td><td class="n">2</td><td class="n">3,6</td><td class="n">77,7</td></tr>
+        <tr><td>A</td><td class="n">3</td><td class="n">3,8</td><td class="n">73,4</td></tr>
+        <tr><td>B</td><td class="n">1</td><td class="n">10,4</td><td class="n">83,2</td></tr>
+        <tr><td>B</td><td class="n">2</td><td class="n">9,2</td><td class="n">75,5</td></tr>
+        <tr><td>B</td><td class="n">3</td><td class="n">10,8</td><td class="n">85,6</td></tr>
+        <tr><td>I</td><td class="n">1</td><td class="n">15,6</td><td class="n">58,2</td></tr>
+        <tr><td>I</td><td class="n">2</td><td class="n">14,2</td><td class="n">55,6</td></tr>
+        <tr><td>I</td><td class="n">3</td><td class="n">14,2</td><td class="n">66,2</td></tr>
+        <tr class="jeda"><td>⋮</td><td class="n">⋮</td><td class="n">⋮</td><td class="n">⋮</td></tr>
+        <tr><td>I</td><td class="n">15</td><td class="n">14,4</td><td class="n">56,4</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Kolom negara bernilai A pada tiga baris pertama, B pada tiga baris berikutnya, dan seterusnya. Nilai yang berulang pada kolom itu menandakan bahwa baris-baris tersebut berasal dari <i>cluster</i> yang sama.</p>
+
+  <h3>Pengukuran berulang</h3>
+  <p>Pengukuran berulang terjadi bila subjek yang sama diamati pada beberapa waktu yang berbeda. Pengamatan pada subjek yang sama berbagi karakteristik subjek tersebut, misalnya kemampuan awal, sehingga subjek berperan sebagai <i>cluster</i> dan setiap waktu pengamatan menjadi satu pengamatan di dalamnya. Tabel berikut menunjukkan skor asesmen matematika tiga siswa yang masing-masing diamati pada tiga waktu yang berbeda, misalnya awal, tengah, dan akhir tahun ajaran (data ilustrasi).</p>
+  <div class="tabel-gulir">
+    <table class="tabel">
+      <thead>
+        <tr><th>Siswa<br>(\(i\))</th><th>Waktu<br>(\(j\))</th><th>Skor asesmen<br>(\(Y_{ij}\))</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="n">1</td><td class="n">1</td><td class="n">62,0</td></tr>
+        <tr><td class="n">1</td><td class="n">2</td><td class="n">67,0</td></tr>
+        <tr><td class="n">1</td><td class="n">3</td><td class="n">73,0</td></tr>
+        <tr><td class="n">2</td><td class="n">1</td><td class="n">78,0</td></tr>
+        <tr><td class="n">2</td><td class="n">2</td><td class="n">81,0</td></tr>
+        <tr><td class="n">2</td><td class="n">3</td><td class="n">87,0</td></tr>
+        <tr><td class="n">3</td><td class="n">1</td><td class="n">55,0</td></tr>
+        <tr><td class="n">3</td><td class="n">2</td><td class="n">60,0</td></tr>
+        <tr><td class="n">3</td><td class="n">3</td><td class="n">64,0</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Bentuk ini sesuai dengan data longitudinal yang dibahas pada halaman <a href="../../struktur-data/struktur-data-dimensi-waktu/index.html">Cross Section vs Time Series vs Longitudinal vs Panel</a>. Siswa yang sama muncul pada tiga baris, satu baris untuk tiap waktu, sehingga ketiga skor itu tidak boleh diperlakukan sebagai tiga pengamatan yang saling independen.</p>
+  <div class="temuan">Data berklaster dan data pengukuran berulang memiliki struktur yang sama: pengamatan dikelompokkan oleh sumber yang sama, sehingga pengamatan dalam satu <i>cluster</i> tidak independen.</div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">03 · Kenapa harus mixed model?</div>
+  <h2>Dari regresi biasa ke <i>mixed model</i></h2>
+
+  <h3>Contoh kasus</h3>
+  <p>Misalkan jam belajar per minggu dan skor asesmen matematika (skala 0 sampai 100) dicatat pada siswa dari tiga negara, yaitu negara A, B, dan I, dengan 15 siswa di tiap negara. Ketiga negara memiliki kisaran jam belajar dan skor yang berbeda:</p>
+  <ul>
+    <li>Negara A memiliki kisaran jam belajar paling rendah, tetapi skor siswanya cenderung tinggi.</li>
+    <li>Negara B memiliki kisaran jam belajar lebih tinggi daripada negara A dan lebih rendah daripada negara I, dengan skor siswa yang cenderung sama dengan negara A.</li>
+    <li>Negara I memiliki kisaran jam belajar paling tinggi, tetapi skor siswanya paling rendah.</li>
+  </ul>
+  <p>Seluruh data pada halaman ini adalah data ilustrasi.</p>
+
+  <h3>Regresi biasa</h3>
+  <p>Regresi biasa mengabaikan negara dan memperlakukan seluruh siswa sebagai pengamatan yang independen:</p>
+  <div class="math">$$Y_{ij} = \beta_0 + \beta_1 X_{ij} + \varepsilon_{ij}$$</div>
+  <p>Jika data dimodelkan dengan regresi biasa, diperoleh satu garis regresi untuk seluruh siswa seperti pada ilustrasi di bawah.</p>
+
+  <div class="fig" id="fig-regresi-biasa">
+    <h3 class="fig-judul">Regresi biasa pada jam belajar dan skor asesmen tiga negara</h3>
+    <p class="fig-ket" style="margin:0 0 12px">Setiap titik adalah satu siswa, diwarnai menurut negaranya. Data ilustrasi.</p>
+    <canvas id="cv-regresi-biasa" style="aspect-ratio:2.1/1" role="img" aria-label="Diagram pencar jam belajar dan skor asesmen 96 siswa dari tiga negara; titik negara A di kiri atas, negara B di tengah, negara I di kanan bawah, dengan satu garis regresi gabungan yang menurun"></canvas>
+    <p class="fig-ket">Satu garis regresi untuk seluruh siswa, tanpa memperhitungkan negara. Garis ini menurun.</p>
+  </div>
+
+  <p>Garis regresi pada ilustrasi menurun: tiap tambahan satu jam belajar per minggu berkaitan dengan penurunan rata-rata skor. Hasil ini tidak masuk akal secara substantif, karena siswa dengan jam belajar lebih tinggi seharusnya memiliki skor lebih tinggi.</p>
+  <p>Titik-titik pada ilustrasi sesuai dengan harapan itu. Di dalam setiap negara, yaitu pada titik dengan warna yang sama, siswa dengan jam belajar lebih tinggi cenderung memiliki skor lebih tinggi. Garis regresi menurun karena negara dengan jam belajar paling tinggi (negara I) memiliki skor paling rendah, sehingga perbedaan antar negara bercampur dengan hubungan di dalam negara.</p>
+  <p>Penyebabnya adalah regresi biasa mengabaikan negara. Siswa dari negara yang sama tidak independen (bagian 02), dan regresi biasa tidak memiliki cara untuk memisahkan perbedaan antar negara dari hubungan jam belajar dan skor. Inilah alasan <i>mixed model</i> diperlukan.</p>
+
+  <h3><i>Mixed model</i></h3>
+  <p><i>Mixed model</i> memperhitungkan negara sebagai <i>cluster</i>. Model ini memberikan satu garis regresi untuk tiap negara, dengan seluruh garis diestimasi bersama dalam satu model. Ilustrasi berikut menunjukkan garis regresi tiap negara pada data yang sama. Garis-garis ini bukan hasil regresi yang dilakukan terpisah pada tiap negara.</p>
+
+  <div class="fig" id="fig-regresi-campuran">
+    <h3 class="fig-judul">Garis regresi per negara dari <i>mixed model</i></h3>
+    <p class="fig-ket" style="margin:0 0 12px">Data, sumbu, dan warna negara sama dengan figur sebelumnya. Data ilustrasi.</p>
+    <canvas id="cv-regresi-campuran" style="aspect-ratio:2.1/1" role="img" aria-label="Diagram pencar yang sama dengan figur sebelumnya, kini dengan tiga garis regresi menaik, satu untuk tiap negara, berwarna sesuai negaranya"></canvas>
+    <p class="fig-ket">Satu garis untuk tiap negara. Garisnya mengikuti pola titik negara itu dan ditarik mendekati garis rata-rata seperti sifat <i>shrinkage</i>, sehingga ketiganya menaik dan saling berdekatan.</p>
+  </div>
+
+  <p>Berbeda dengan regresi biasa, garis tiap negara pada ilustrasi menaik. Hubungan positif antara jam belajar dan skor di dalam negara kini terlihat.</p>
+  <p>Untuk siswa ke-\(j\) pada negara ke-\(i\), dengan <i>intercept</i> dan <i>slope</i> keduanya bervariasi antar negara, modelnya adalah</p>
+  <div class="math">$$Y_{ij} = (\beta_0 + b_{0i}) + (\beta_1 + b_{1i})\,X_{ij} + \varepsilon_{ij}$$</div>
+  <p>dengan</p>
+  <ul>
+    <li><strong><i>fixed effect</i></strong> \(\beta_0\) dan \(\beta_1\): parameter yang bernilai sama untuk seluruh <i>cluster</i>, yaitu <i>intercept</i> dan <i>slope</i> garis rata-rata seluruh negara;</li>
+    <li><strong><i>random effect</i></strong> \(b_{0i}\) dan \(b_{1i}\): simpangan <i>intercept</i> dan <i>slope</i> negara ke-\(i\) dari garis rata-rata tersebut, yang diperlakukan sebagai peubah acak.</li>
+  </ul>
+  <p>Dengan demikian <i>intercept</i> negara ke-\(i\) adalah \(\beta_0 + b_{0i}\) dan <i>slope</i>-nya adalah \(\beta_1 + b_{1i}\). Asumsi distribusinya adalah</p>
+  <div class="math">$$\begin{pmatrix} b_{0i} \\ b_{1i} \end{pmatrix} \sim N(\mathbf{0}, \mathbf{G}), \qquad \varepsilon_{ij} \sim N(0, \sigma^2)$$</div>
+  <p>dengan matriks \(\mathbf{G}\) yang memuat varians <i>random effect</i> dan kovarians di antaranya:</p>
+  <div class="math">$$\mathbf{G} = \begin{pmatrix} \sigma_0^2 & \sigma_{01} \\ \sigma_{01} & \sigma_1^2 \end{pmatrix}$$</div>
+  <p>Di sini \(\sigma_0^2\) adalah varians <i>intercept</i> antar negara, \(\sigma_1^2\) varians <i>slope</i> antar negara, dan \(\sigma_{01}\) kovarians antara <i>intercept</i> dan <i>slope</i>.</p>
+  <p>Seluruh pengamatan pada negara ke-\(i\) dapat disusun menjadi satu vektor \(\mathbf{y}_i\), sehingga model di atas ditulis dalam <strong>bentuk umum</strong> <i>mixed model</i> linear:</p>
+  <div class="math">$$\mathbf{y}_i = \mathbf{X}_i \boldsymbol{\beta} + \mathbf{Z}_i \mathbf{b}_i + \boldsymbol{\varepsilon}_i, \qquad \mathbf{b}_i \sim N(\mathbf{0}, \mathbf{G}), \quad \boldsymbol{\varepsilon}_i \sim N(\mathbf{0}, \sigma^2 \mathbf{I})$$</div>
+  <p>Makna tiap komponen:</p>
+  <ul>
+    <li>\(\mathbf{y}_i\): vektor skor siswa pada negara ke-\(i\), berukuran \(n_i \times 1\).</li>
+    <li>\(\mathbf{X}_i\) dan \(\boldsymbol{\beta}\): matriks desain dan koefisien <i>fixed effect</i>. Pada contoh ini \(\mathbf{X}_i\) berisi kolom konstan dan kolom \(X_{ij}\), dan \(\boldsymbol{\beta} = (\beta_0, \beta_1)^\top\).</li>
+    <li>\(\mathbf{Z}_i\) dan \(\mathbf{b}_i\): matriks desain dan vektor <i>random effect</i>. \(\mathbf{Z}_i\) menentukan parameter mana yang bervariasi antar negara. Pada contoh ini \(\mathbf{Z}_i\) berisi kolom konstan dan kolom \(X_{ij}\), dan \(\mathbf{b}_i = (b_{0i}, b_{1i})^\top\).</li>
+    <li>\(\boldsymbol{\varepsilon}_i\): galat pengamatan. Vektor \(\mathbf{b}_i\) saling independen antar negara.</li>
+  </ul>
+  <p>Bentuk umum ini berlaku untuk seluruh <i>mixed model</i> linear. Perbedaan antar model terletak pada isi \(\mathbf{Z}_i\), yang dibahas pada bagian 04.</p>
+  <p>Karena \(\mathbf{b}_i\) dimiliki bersama oleh seluruh siswa pada negara ke-\(i\), dua siswa pada negara yang sama memiliki galat total yang berkorelasi. Dengan demikian <i>mixed model</i> memodelkan ketergantungan dalam <i>cluster</i> yang diabaikan oleh regresi biasa.</p>
+  <p>Garis tiap negara pada <i>mixed model</i> bukan hasil regresi yang terpisah untuk tiap negara. Estimasinya cenderung mendekati garis rata-rata, dan kecenderungan ini lebih kuat pada negara dengan sedikit pengamatan. Gejala ini disebut <i>shrinkage</i>.</p>
+  <p>Ilustrasi di atas memakai tiga negara agar garisnya mudah dibaca. Pada praktiknya, <i>mixed model</i> memerlukan jumlah <i>cluster</i> yang lebih banyak, karena varians <i>random effect</i> diestimasi dari variasi antar <i>cluster</i>. Selain itu, <i>slope fixed</i> memadukan informasi di dalam <i>cluster</i> dan antar <i>cluster</i>. Bila tiap <i>cluster</i> memuat sedikit pengamatan atau perbedaan antar <i>cluster</i> kecil, estimasinya lebih dipengaruhi perbedaan antar <i>cluster</i>, sehingga hasilnya perlu dibaca dengan hati-hati.</p>
+  <div class="temuan">Regresi biasa pada data berklaster dapat menghasilkan arah hubungan yang berbeda dari hubungan di dalam tiap <i>cluster</i>. <i>Mixed model</i> mengestimasi garis rata-rata (<i>fixed effect</i>) dan penyimpangan tiap <i>cluster</i> dari garis itu (<i>random effect</i>), sehingga hubungan positif di dalam negara dapat terlihat.</div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">04 · Random intercept dan random slope</div>
+  <h2>Parameter yang bervariasi antar <i>cluster</i></h2>
+  <p>Pada bagian 03, <i>intercept</i> dan <i>slope</i> keduanya dibiarkan bervariasi antar negara. Pilihan lain adalah membiarkan salah satunya saja yang bervariasi. <i>Fixed effect</i> selalu ada pada setiap varian; yang membedakan varian adalah parameter mana yang diberi <i>random effect</i>. Dari pilihan ini terbentuk tiga varian.</p>
+
+  <h3><i>Random intercept</i></h3>
+  <p>Hanya <i>intercept</i> yang bervariasi antar <i>cluster</i>, sedangkan <i>slope</i> sama untuk seluruh <i>cluster</i>:</p>
+  <div class="math">$$Y_{ij} = (\beta_0 + b_{0i}) + \beta_1 X_{ij} + \varepsilon_{ij}, \qquad b_{0i} \sim N(0, \sigma_0^2)$$</div>
+  <p>Dalam bentuk umum, \(\mathbf{Z}_i\) hanya berisi kolom konstan, \(\mathbf{b}_i = b_{0i}\), dan \(\mathbf{G} = \sigma_0^2\). Garis tiap <i>cluster</i> sejajar: tingkat skor berbeda antar negara, tetapi pengaruh jam belajar sama. Pada model ini, korelasi antara dua siswa pada negara yang sama adalah \(\sigma_0^2 / (\sigma_0^2 + \sigma^2)\).</p>
+
+  <h3><i>Random slope</i></h3>
+  <p>Hanya <i>slope</i> yang bervariasi antar <i>cluster</i>, sedangkan <i>intercept</i> sama untuk seluruh <i>cluster</i>:</p>
+  <div class="math">$$Y_{ij} = \beta_0 + (\beta_1 + b_{1i})\,X_{ij} + \varepsilon_{ij}, \qquad b_{1i} \sim N(0, \sigma_1^2)$$</div>
+  <p>Dalam bentuk umum, \(\mathbf{Z}_i\) hanya berisi kolom \(X_{ij}\), \(\mathbf{b}_i = b_{1i}\), dan \(\mathbf{G} = \sigma_1^2\). Seluruh garis memiliki <i>intercept</i> yang sama sehingga berpotongan di \(X = 0\), dengan <i>slope</i> yang berbeda. Varian ini jarang dipakai. Titik temu pada \(X = 0\) bergantung pada skala \(X\) (bila \(X\) dipusatkan pada rata-ratanya, titik temu pindah ke rata-rata \(X\)) dan jarang memiliki dasar substantif. Varian ini disajikan agar perbedaan antara <i>fixed effect</i> dan <i>random effect</i> terlihat jelas.</p>
+
+  <h3><i>Random intercept</i> dan <i>random slope</i></h3>
+  <p><i>Intercept</i> dan <i>slope</i> keduanya bervariasi antar <i>cluster</i>:</p>
+  <div class="math">$$Y_{ij} = (\beta_0 + b_{0i}) + (\beta_1 + b_{1i})\,X_{ij} + \varepsilon_{ij}$$</div>
+  <p>Dalam bentuk umum, \(\mathbf{Z}_i\) berisi kolom konstan dan kolom \(X_{ij}\), dan \(\mathbf{G}\) berukuran \(2 \times 2\) dengan kovarians \(\sigma_{01}\) di luar diagonal. Garis tiap <i>cluster</i> berbeda dalam <i>intercept</i> maupun <i>slope</i>. Varian inilah yang dipakai pada bagian 03.</p>
+
+  <div class="fig" id="fig-varian">
+    <h3 class="fig-judul">Tiga varian garis regresi antar <i>cluster</i></h3>
+    <p class="fig-ket" style="margin:0 0 12px">Lima <i>cluster</i>, sumbu x selalu mulai dari 0, dan titik pada x = 0 ditandai untuk tiap garis.</p>
+    <canvas id="cv-varian" style="aspect-ratio:2.1/1" role="img" aria-label="Tiga tampilan garis regresi lima cluster: random intercept dengan garis sejajar, random slope dengan garis bertemu di x sama dengan nol, dan keduanya dengan garis tidak sejajar dan tidak bertemu"></canvas>
+    <div class="ctl" role="group" aria-label="Pilih varian model">
+      <button type="button" class="btn p" id="v-ri" aria-pressed="true"><i>Random intercept</i></button>
+      <button type="button" class="btn" id="v-rs" aria-pressed="false"><i>Random slope</i></button>
+      <button type="button" class="btn" id="v-both" aria-pressed="false">Keduanya</button>
+    </div>
+    <p class="fig-ket" id="v-ket">Garis seluruh <i>cluster</i> sejajar. <i>Slope</i> sama untuk semua <i>cluster</i> (<i>fixed</i>), sedangkan <i>intercept</i> berbeda (<i>random</i>).</p>
+  </div>
+
+  <div class="tabel-gulir">
+    <table class="tabel lebar">
+      <thead>
+        <tr><th>Varian</th><th><i>Fixed effect</i></th><th><i>Random effect</i></th><th>Isi \(\mathbf{Z}_i\)</th><th>Bentuk garis antar <i>cluster</i></th></tr>
+      </thead>
+      <tbody>
+        <tr><td><i>Random intercept</i></td><td>\(\beta_0, \beta_1\)</td><td>\(b_{0i}\)</td><td>kolom konstan</td><td>sejajar</td></tr>
+        <tr><td><i>Random slope</i></td><td>\(\beta_0, \beta_1\)</td><td>\(b_{1i}\)</td><td>kolom \(X_{ij}\)</td><td>bertemu di \(X = 0\)</td></tr>
+        <tr><td><i>Random intercept</i> dan <i>random slope</i></td><td>\(\beta_0, \beta_1\)</td><td>\(b_{0i}, b_{1i}\)</td><td>kolom konstan dan kolom \(X_{ij}\)</td><td>tidak sejajar dan tidak bertemu di \(X = 0\)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Kapan memakai yang mana</h3>
+  <p>Pemilihan <i>random effect</i> didasarkan pada teori, dan dapat dikonfirmasi dengan data. Pedomannya sebagai berikut.</p>
+  <ol>
+    <li><strong><i>Intercept</i> umumnya dibiarkan <i>random</i>.</strong> <i>Cluster</i> hampir selalu berbeda dalam tingkat rata-rata respons, dan perbedaan ini adalah sumber ketergantungan antar pengamatan dalam <i>cluster</i>.</li>
+    <li><strong>Untuk setiap peubah penjelas, tanyakan apakah hubungannya dengan respons diharapkan sama di seluruh <i>cluster</i>.</strong> Bila ya, cukup <i>fixed slope</i>. Bila hubungannya mungkin berbeda antar <i>cluster</i>, tambahkan <i>random slope</i>.</li>
+    <li><strong>Peubah penjelas kategorik umumnya memiliki <i>slope</i> yang <i>fixed</i>, sedangkan peubah numerik sering memerlukan <i>random slope</i>.</strong> Ini kecenderungan, bukan aturan.</li>
+    <li><strong>Bila teori tidak memberi arah, data dapat dipakai.</strong> Bandingkan model tanpa dan dengan <i>random slope</i> untuk menilai apakah <i>random slope</i> diperlukan.</li>
+  </ol>
+  <p>Dua contoh:</p>
+  <ul>
+    <li><strong>Selisih skor asesmen antara siswa laki-laki dan perempuan pada sejumlah sekolah.</strong> Tidak ada alasan substantif bahwa selisih tersebut berbeda antar sekolah, sedangkan tingkat skor rata-rata antar sekolah berbeda. Pilihannya adalah <i>random intercept</i> saja.</li>
+    <li><strong>Hubungan jam belajar dengan skor asesmen pada sejumlah negara, seperti pada bagian 03.</strong> Hubungan ini dapat berbeda antar negara, misalnya karena perbedaan kurikulum atau cara belajar, dan rata-rata skor antar negara juga berbeda. Pilihannya adalah <i>random intercept</i> dan <i>random slope</i>.</li>
+  </ul>
+  <div class="temuan"><i>Fixed effect</i> ada pada ketiga varian. Yang menentukan varian adalah parameter mana yang diberi <i>random effect</i>: <i>intercept</i>, <i>slope</i>, atau keduanya.</div>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">05 · Latihan dan ringkasan</div>
+  <h2>Quiz Time!</h2>
+  <p>Lima soal di bawah ini masing-masing menampilkan garis regresi empat <i>cluster</i> dengan sumbu \(x\) mulai dari 0. Tentukan varian model yang sesuai: <i>random intercept</i>, <i>random slope</i>, atau keduanya. Periksa dua hal: apakah garis sejajar, dan apakah garis bertemu di satu titik pada \(x = 0\).</p>
+
+  <div class="fig fig-kuis" id="fig-kuis-1">
+    <h3 class="fig-judul">Soal 1 · <i>Random intercept</i> atau <i>slope</i>?</h3>
+    <canvas id="cv-kuis-1" class="cv-kuis" style="aspect-ratio:2.1/1" role="img" aria-label="Soal 1: garis regresi empat cluster, sumbu x jam belajar dari 0 sampai 10, sumbu y skor asesmen dari 0 sampai 100"></canvas>
+    <p class="fig-ket">Hubungan jam belajar dan skor asesmen pada empat sekolah.</p>
+    <div class="ctl" role="group" aria-label="Pilih varian model untuk soal 1">
+      <button type="button" class="btn" data-soal="1" data-jawab="ri"><i>Random intercept</i></button>
+      <button type="button" class="btn" data-soal="1" data-jawab="rs"><i>Random slope</i></button>
+      <button type="button" class="btn" data-soal="1" data-jawab="both">Random intercept dan random slope</button>
+    </div>
+    <p class="fig-ket k-umpan" aria-live="polite"></p>
+  </div>
+
+  <div class="fig fig-kuis" id="fig-kuis-2">
+    <h3 class="fig-judul">Soal 2 · <i>Random intercept</i> atau <i>slope</i>?</h3>
+    <canvas id="cv-kuis-2" class="cv-kuis" style="aspect-ratio:2.1/1" role="img" aria-label="Soal 2: garis regresi empat cluster, sumbu x jam belajar dari 0 sampai 10, sumbu y skor asesmen dari 0 sampai 100"></canvas>
+    <p class="fig-ket">Hubungan jam belajar dan skor asesmen pada empat negara.</p>
+    <div class="ctl" role="group" aria-label="Pilih varian model untuk soal 2">
+      <button type="button" class="btn" data-soal="2" data-jawab="ri"><i>Random intercept</i></button>
+      <button type="button" class="btn" data-soal="2" data-jawab="rs"><i>Random slope</i></button>
+      <button type="button" class="btn" data-soal="2" data-jawab="both">Random intercept dan random slope</button>
+    </div>
+    <p class="fig-ket k-umpan" aria-live="polite"></p>
+  </div>
+
+  <div class="fig fig-kuis" id="fig-kuis-3">
+    <h3 class="fig-judul">Soal 3 · <i>Random intercept</i> atau <i>slope</i>?</h3>
+    <canvas id="cv-kuis-3" class="cv-kuis" style="aspect-ratio:2.1/1" role="img" aria-label="Soal 3: garis regresi empat cluster, sumbu x jumlah latihan soal dari 0 sampai 10, sumbu y skor tes dari 0 sampai 100"></canvas>
+    <p class="fig-ket">Hubungan jumlah latihan soal dan skor tes pada empat kelas.</p>
+    <div class="ctl" role="group" aria-label="Pilih varian model untuk soal 3">
+      <button type="button" class="btn" data-soal="3" data-jawab="ri"><i>Random intercept</i></button>
+      <button type="button" class="btn" data-soal="3" data-jawab="rs"><i>Random slope</i></button>
+      <button type="button" class="btn" data-soal="3" data-jawab="both">Random intercept dan random slope</button>
+    </div>
+    <p class="fig-ket k-umpan" aria-live="polite"></p>
+  </div>
+
+  <div class="fig fig-kuis" id="fig-kuis-4">
+    <h3 class="fig-judul">Soal 4 · <i>Random intercept</i> atau <i>slope</i>?</h3>
+    <canvas id="cv-kuis-4" class="cv-kuis" style="aspect-ratio:2.1/1" role="img" aria-label="Soal 4: garis regresi empat cluster, sumbu x jumlah absensi dari 0 sampai 10, sumbu y skor ujian dari 0 sampai 100"></canvas>
+    <p class="fig-ket">Hubungan jumlah absensi dan skor ujian pada empat sekolah.</p>
+    <div class="ctl" role="group" aria-label="Pilih varian model untuk soal 4">
+      <button type="button" class="btn" data-soal="4" data-jawab="ri"><i>Random intercept</i></button>
+      <button type="button" class="btn" data-soal="4" data-jawab="rs"><i>Random slope</i></button>
+      <button type="button" class="btn" data-soal="4" data-jawab="both">Random intercept dan random slope</button>
+    </div>
+    <p class="fig-ket k-umpan" aria-live="polite"></p>
+  </div>
+
+  <div class="fig fig-kuis" id="fig-kuis-5">
+    <h3 class="fig-judul">Soal 5 · <i>Random intercept</i> atau <i>slope</i>?</h3>
+    <canvas id="cv-kuis-5" class="cv-kuis" style="aspect-ratio:2.1/1" role="img" aria-label="Soal 5: garis regresi empat cluster, sumbu x dari 0 sampai 10, sumbu y dari 0 sampai 100"></canvas>
+    <p class="fig-ket">Hubungan peubah \(x\) dan respons \(y\) pada empat <i>cluster</i>.</p>
+    <div class="ctl" role="group" aria-label="Pilih varian model untuk soal 5">
+      <button type="button" class="btn" data-soal="5" data-jawab="ri"><i>Random intercept</i></button>
+      <button type="button" class="btn" data-soal="5" data-jawab="rs"><i>Random slope</i></button>
+      <button type="button" class="btn" data-soal="5" data-jawab="both">Random intercept dan random slope</button>
+    </div>
+    <p class="fig-ket k-umpan" aria-live="polite"></p>
+  </div>
+
+  <div class="ctl" id="k-skor" hidden><span class="lbl">Skor kamu</span><b id="k-skor-angka">0</b><span class="lbl">dari 5</span><button type="button" class="btn p" id="k-ulang">Ulang</button></div>
+
+  <h3>Ringkasan</h3>
+  <ol>
+    <li>Asumsi independensi berarti pengamatan tidak berkorelasi dalam satu peubah. Asumsi ini tidak terpenuhi pada data berklaster dan pada pengukuran berulang.</li>
+    <li>Regresi biasa pada data berklaster dapat menghasilkan arah hubungan yang berbeda dari hubungan di dalam tiap <i>cluster</i>.</li>
+    <li><i>Mixed model</i> memuat <i>fixed effect</i>, yaitu garis rata-rata seluruh <i>cluster</i>, dan <i>random effect</i>, yaitu simpangan tiap <i>cluster</i> dari garis itu. Bentuk umumnya adalah \(\mathbf{y}_i = \mathbf{X}_i \boldsymbol{\beta} + \mathbf{Z}_i \mathbf{b}_i + \boldsymbol{\varepsilon}_i\).</li>
+    <li>Garis tiap <i>cluster</i> pada <i>mixed model</i> cenderung mendekati garis rata-rata (<i>shrinkage</i>), terutama pada <i>cluster</i> dengan sedikit pengamatan.</li>
+    <li>Tiga varian ditentukan oleh isi \(\mathbf{Z}_i\): <i>random intercept</i> (garis sejajar), <i>random slope</i> (garis bertemu di \(X = 0\)), dan keduanya.</li>
+    <li><i>Intercept</i> umumnya dibiarkan <i>random</i>. <i>Random slope</i> ditambahkan bila hubungan antara peubah penjelas dan respons mungkin berbeda antar <i>cluster</i>.</li>
+  </ol>
+</section>
+
+<section class="muncul">
+  <div class="label-bagian">06 · Referensi</div>
+  <h2>Bacaan lanjutan</h2>
+  <ul class="sumber">
+    <li>Fitzmaurice, G. M., Laird, N. M., &amp; Ware, J. H. (2011). <i>Applied Longitudinal Analysis</i> (2nd ed.). John Wiley &amp; Sons.</li>
+    <li>Gelman, A., &amp; Hill, J. (2007). <i>Data Analysis Using Regression and Multilevel/Hierarchical Models</i>. Cambridge University Press.</li>
+    <li>Raudenbush, S. W., &amp; Bryk, A. S. (2002). <i>Hierarchical Linear Models: Applications and Data Analysis Methods</i> (2nd ed.). Sage Publications.</li>
+    <li>Snijders, T. A. B., &amp; Bosker, R. J. (2012). <i>Multilevel Analysis: An Introduction to Basic and Advanced Multilevel Modeling</i> (2nd ed.). Sage Publications.</li>
+  </ul>
+</section>
+
+<nav class="nav-bawah" aria-label="Navigasi materi">
+  <a class="kartu-nav" href="../../../index.html#arsip">
+    <span>Arsip</span>
+    <b>Kembali ke daftar materi</b>
+  </a>
+  <span></span>
+</nav>
+
+</main>
+<script src="../../../kit/vendor/katex/katex.min.js"></script>
+<script src="../../../kit/vendor/katex/auto-render.min.js"></script>
+<script src="../../../kit/kit.js"></script>
+<script src="../../../kit/daftar-isi.js"></script>
+<script src="widgets/data-ilustrasi.js"></script>
+<script src="widgets/struktur.js"></script>
+<script src="widgets/regresi-biasa.js"></script>
+<script src="widgets/regresi-campuran.js"></script>
+<script src="widgets/varian.js"></script>
+<script src="widgets/kuis.js"></script>
+</body>
+</html>

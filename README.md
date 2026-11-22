@@ -17,11 +17,13 @@ Kalau ada masukan atau saran materi, contact aja.
 
 ## Materi saat ini
 
-Ada dua topik: **Metode Simulasi Statistika** dan **Struktur Data**.
+Ada empat topik: **Metode Simulasi Statistika**, **Struktur Data**, **Machine Learning**, dan **Mixed Model**.
 
 1. Simulasi Monte Carlo, Bagian 1 — Pengantar Hit or Miss. Estimasi pi dengan titik acak di persegi.
 2. Simulasi Monte Carlo, Bagian 2 — Membangkitkan Data Berdistribusi Tertentu. Metode acceptance-rejection untuk Beta(2,4) dan normal, dengan kode R dan simulasi interaktif.
 3. Cross Section vs Time Series vs Longitudinal vs Panel — Mengenali 4 struktur data dari pola pengamatannya. Satu grid interaktif dan empat ilustrasi statis.
+4. Decision Tree — Pengantar pohon keputusan: gagasan dasar, ukuran impurity, kriteria split, overfitting, dan penerapan dengan scikit-learn.
+5. Pendahuluan Mixed Model — Data berklaster dan pengukuran berulang sebagai pintu masuk mixed model. Tiga ilustrasi struktur level pengamatan (berklaster, berulang, tersarang), perbandingan pendekatan analisis, dan kuis interaktif.
 
 ## Menambah materi
 
